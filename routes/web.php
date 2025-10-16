@@ -2,8 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('user.welcome');
+Route::get('/registro', function () {
+    return view('user.register');
 });
 
 Route::middleware([
