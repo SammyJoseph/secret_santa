@@ -51,7 +51,7 @@ class UserController extends Controller
         session()->forget('temp_profile_image');
         Auth::login($user);
 
-        return redirect()->route('user.profile')->with('success', 'Usuario registrado exitosamente.');
+        return redirect()->route('user.profile')->with('success', 'Tu participación fue registrada con éxito. Aquí verás quién es tu Amigo Secreto después del sorteo. Puedes actualizar tu perfil y sugerencias de regalo antes del sorteo.');
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -92,7 +92,7 @@ class UserController extends Controller
 
         session()->forget('temp_profile_image');
 
-        return redirect()->route('user.profile')->with('success', 'Perfil actualizado exitosamente.');
+        return redirect()->route('user.profile')->with('success', 'Tu perfil se actualizó con éxito.');
     }
 
     public function profile()

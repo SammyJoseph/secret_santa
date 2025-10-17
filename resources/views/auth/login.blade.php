@@ -1,48 +1,57 @@
 <x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+    <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
+        style="background-image: url('{{ asset('assets/images/xbg.jpg') }}');">
+        <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
+        <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
+            <div class="grid  gap-8 grid-cols-1">
+                <div class="flex flex-col ">
+                    <div class="flex flex-col sm:flex-row items-center">
+                        <h2 class="font-semibold text-lg mr-auto">Iniciar Sesión</h2>
+                        <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
+                    </div>
+                    <div>
+                        <x-validation-errors class="mb-4" />
 
-        <x-validation-errors class="mb-4" />
+                        @session('status')
+                            <div class="mb-4 font-medium text-sm text-green-600">
+                                {{ $value }}
+                            </div>
+                        @endsession
 
-        @session('status')
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ $value }}
+                        <form method="POST" action="{{ route('login') }}">
+                            @csrf
+                            <div class="form">
+                                <div class="md:flex flex-row md:space-x-4 w-full text-xs mt-6">
+                                    <div class="space-y-2 w-full text-xs">
+                                        <label class="font-semibold text-gray-600 py-2">DNI</label>
+                                        <input placeholder="87654321" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
+                                            type="text" name="dni" id="dni" value="{{ old('dni') }}" autofocus>
+                                    </div>
+                                </div>
+                                <div class="md:flex flex-row md:space-x-4 w-full text-xs mt-6">
+                                    <div class="space-y-2 w-full text-xs">
+                                        <label class="font-semibold text-gray-600 py-2">Contraseña</label>
+                                        <input placeholder="Contraseña" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
+                                            type="password" name="password" id="password" autocomplete="current-password">
+                                    </div>
+                                </div>
+
+                                <div class="block mt-4">
+                                    <label for="remember_me" class="flex items-center">
+                                        <x-checkbox id="remember_me" name="remember" />
+                                        <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                                    </label>
+                                </div>
+
+                                <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
+                                    <a href="{{ route('user.register.view') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Registrarse</a>
+                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Iniciar Sesión</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        @endsession
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-
-            <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            </div>
-
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
-            </div>
-
-            <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-                </label>
-            </div>
-
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-
-                <x-button class="ms-4">
-                    {{ __('Log in') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
+        </div>
+    </div>
 </x-guest-layout>

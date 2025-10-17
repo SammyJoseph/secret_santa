@@ -2,7 +2,7 @@
     <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
         style="background-image: url('{{ asset('assets/images/xbg.jpg') }}');">
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
-        <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
+        <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
             <div class="grid  gap-8 grid-cols-1">
                 <div class="flex flex-col ">
                     <div class="flex flex-col sm:flex-row items-center">
@@ -115,7 +115,7 @@
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs mt-6">
                                     <div class="space-y-2 w-full text-xs">
                                         <label class="font-semibold text-gray-600 py-2">Contraseña</label>
-                                        <input placeholder="Escribe una contraseña fácil" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
+                                        <input placeholder="Crea una contraseña fácil" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
                                             type="password" name="password" id="password">
                                         @error('password')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -128,7 +128,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
-                                    <button type="button" onclick="window.history.back()" class="mb-2 md:mb-0 bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cancelar</button>
+                                    {{-- <a href="{{ route('login') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Iniciar Sesión</a> --}}
                                     <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Registrar mi participación</button>
                                 </div>
                             </div>

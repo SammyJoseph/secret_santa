@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
         // Create the specific user
         $user = User::factory()->withGiftSuggestions(3)->create([
             'name' => 'Sam',
-            'dni' => '12345678',
+            'dni' => '47003307',
             'email' => 'sam@example.com',
         ]);
 
