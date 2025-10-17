@@ -11,11 +11,17 @@ Route::get('/', function () {
         return redirect()->route('user.profile');
     }
     return view('auth.login');
-})->name('login');
+})->name('home');
 
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-Route::view('/registro', 'user.register')->name('user.register.view');
+Route::get('/registro', function () {
+    if (Auth::check()) {
+        return redirect()->route('home');
+    }
+    return view('user.register');
+})->name('user.register.view');
+
 Route::post('/registro', [UserController::class, 'store'])->name('user.register');
 Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.update');
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');
@@ -30,6 +36,6 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
-    Route::resource('admin/users', AdminUserController::class);
+    Route::middleware('is_admin')->resource('admin/users', AdminUserController::class);
     Route::get('/perfil', [UserController::class, 'profile'])->name('user.profile');
 });

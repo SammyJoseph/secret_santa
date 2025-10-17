@@ -30,6 +30,7 @@ class User extends Authenticatable
         'dni',
         'email',
         'password',
+        'is_admin',
         'profile_photo_path',
     ];
 

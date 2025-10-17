@@ -23,6 +23,7 @@ class UserSeeder extends Seeder
             'name' => 'Sam',
             'dni' => '47003307',
             'email' => 'sam@example.com',
+            'is_admin' => true,
         ]);
 
         $this->downloadAndSaveProfileImage($user);

@@ -27,7 +27,7 @@ class StoreUserRequest extends FormRequest
             'email' => 'nullable|email|unique:users,email',
             'password' => 'required|string|min:4|confirmed',
             'gift_suggestions' => 'required|array|min:1|max:3',
-            'gift_suggestions.*' => 'required|string|max:255',
+            'gift_suggestions.*' => 'required|string|min:3|max:255',
             'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
