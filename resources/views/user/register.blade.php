@@ -6,7 +6,7 @@
             <div class="grid  gap-8 grid-cols-1">
                 <div class="flex flex-col ">
                     <div class="flex flex-col sm:flex-row items-center">
-                        <h2 class="font-semibold text-lg mr-auto">Bienvenido al Amigo Secreto Familiar</h2>
+                        <h2 class="font-semibold text-lg mr-auto">Regístrate para participar en "El Amigo Secreto Familiar" de esta Navidad {{ date('Y') }}</h2>
                         <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
                     </div>
                     <div>
@@ -21,10 +21,11 @@
                                                 alt="Avatar Upload">
                                         </div>
                                         <label class="cursor-pointer ">
-                                            <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#146B3A] hover:bg-green-500 hover:shadow-lg">Cambiar</span>
+                                            <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">Cambiar Foto</span>
                                             <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*">
                                         </label>
                                         <input type="hidden" name="temp_image_filename" id="temp-image-filename" value="{{ session('temp_profile_image') }}">
+                                        <span class="text-gray-400 text-xs ml-2">Opcional</span>
                                     </div>
                                     @error('profile_photo_path')
                                         <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -41,8 +42,18 @@
                                     </div>
                                     <div class="space-y-2 w-full text-xs">
                                         <label class="font-semibold text-gray-600 py-2">DNI</label>
-                                        <input placeholder="87965432" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required" type="text"
-                                            name="dni" id="dni" value="{{ old('dni') }}">
+                                        <input placeholder="87654321"
+                                            class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
+                                            required
+                                            type="text"
+                                            name="dni"
+                                            id="dni"
+                                            value="{{ old('dni') }}"
+                                            minlength="8"
+                                            maxlength="8"
+                                            pattern="\d{8}"
+                                            title="Ingresar 8 dígitos"
+                                            />
                                         @error('dni')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
@@ -50,7 +61,7 @@
                                 </div>
                                 <div class="mt-6">
                                     <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Sugerencia de regalo 1</label>
+                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 1</label>
                                         <div class="flex flex-wrap items-stretch w-full mb-4 relative">
                                             <div class="flex">
                                                 <span
@@ -58,7 +69,7 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[0]"
+                                            <input type="text" name="gift_suggestions[0]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
                                                 placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.0') }}">
                                         </div>
@@ -67,7 +78,7 @@
                                         @enderror
                                     </div>
                                     <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Sugerencia de regalo 2</label>
+                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 2</label>
                                         <div class="flex flex-wrap items-stretch w-full mb-4 relative">
                                             <div class="flex">
                                                 <span
@@ -75,7 +86,7 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[1]"
+                                            <input type="text" name="gift_suggestions[1]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
                                                 placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.1') }}">
                                         </div>
@@ -84,7 +95,7 @@
                                         @enderror
                                     </div>
                                     <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Sugerencia de regalo 3</label>
+                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 3</label>
                                         <div class="flex flex-wrap items-stretch w-full mb-4 relative">
                                             <div class="flex">
                                                 <span
@@ -92,7 +103,7 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[2]"
+                                            <input type="text" name="gift_suggestions[2]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
                                                 placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.2') }}">
                                         </div>
@@ -118,7 +129,7 @@
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
                                     <button type="button" onclick="window.history.back()" class="mb-2 md:mb-0 bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cancelar</button>
-                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-500">Guardar</button>
+                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Registrar mi participación</button>
                                 </div>
                             </div>
                         </form>

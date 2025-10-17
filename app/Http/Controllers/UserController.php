@@ -6,6 +6,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Models\GiftSuggestion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -24,7 +25,6 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Handle profile image upload
         if ($request->hasFile('profile_photo_path')) {
             $this->saveProfileImage($user, $request->file('profile_photo_path'));
         } elseif ($request->input('temp_image_filename')) {
@@ -47,10 +47,9 @@ class UserController extends Controller
             ]);
         }
 
-        // Clear temp session
         session()->forget('temp_profile_image');
+        Auth::login($user);
 
-        // Redirect to profile view
         return redirect()->route('user.profile')->with('success', 'Usuario registrado exitosamente.');
     }
 

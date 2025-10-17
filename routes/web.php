@@ -24,5 +24,5 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
-    Route::resource('admin/user', AdminUserController::class);
+    Route::resource('admin/users', AdminUserController::class);
 });
