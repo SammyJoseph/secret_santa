@@ -10,12 +10,11 @@ Route::get('/', fn() => Auth::check()
     : view('user.register'));
 
 Route::post('/registro', [UserController::class, 'store'])->name('user.register');
+Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.update');
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');
 Route::get('/temp-image/{filename}', [UserController::class, 'getTempImage'])->name('user.temp-image');
 
-Route::get('/perfil', function () {
-    return view('user.profile');
-})->name('user.profile');
+Route::get('/perfil', [UserController::class, 'profile'])->name('user.profile');
 
 Route::middleware([
     'auth:sanctum',
