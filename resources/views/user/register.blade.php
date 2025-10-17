@@ -113,7 +113,7 @@
                                     </div>
                                 </div>
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs mt-6">
-                                    <div class="space-y-2 w-full text-xs">
+                                    <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
                                         <label class="font-semibold text-gray-600 py-2">Contraseña</label>
                                         <input placeholder="Crea una contraseña fácil" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
                                             type="password" name="password" id="password">

@@ -5,6 +5,7 @@
         <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
             <div class="grid  gap-8 grid-cols-1">
                 <div class="flex flex-col ">
+                    <img src="{{ asset('assets/images/tree.gif') }}" class="w-12 mb-2" alt="christmas tree">
                     <div class="flex flex-col sm:flex-row items-center">
                         <h2 class="font-semibold text-lg mr-auto">Iniciar Sesión</h2>
                         <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>

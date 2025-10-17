@@ -36,6 +36,6 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
-    Route::middleware('is_admin')->resource('admin/users', AdminUserController::class);
+    Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
     Route::get('/perfil', [UserController::class, 'profile'])->name('user.profile');
 });

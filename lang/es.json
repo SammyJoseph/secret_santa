@@ -160,10 +160,10 @@
     "Locked": "Bloqueado",
     "Log In": "Iniciar sesión",
     "Log in": "Iniciar sesión",
-    "Log Out": "Finalizar sesión",
+    "Log Out": "Cerrar sesión",
     "Log Out Other Browser Sessions": "Cerrar las demás sesiones",
     "Login": "Iniciar sesión",
-    "Logout": "Finalizar sesión",
+    "Logout": "Cerrar sesión",
     "Loop Detected": "Bucle detectado",
     "Maintenance Mode": "Modo de mantenimiento",
     "Manage Account": "Administrar cuenta",
@@ -368,5 +368,8 @@
     "You may delete any of your existing tokens if they are no longer needed.": "Puede eliminar cualquiera de sus tokens existentes si ya no los necesita.",
     "You may not delete your personal team.": "No se puede borrar su equipo personal.",
     "You may not leave a team that you created.": "No se puede abandonar un equipo que usted creó.",
-    "Your email address is unverified.": "Su dirección de correo electrónico no está verificada."
+    "Your email address is unverified.": "Su dirección de correo electrónico no está verificada.",
+
+    "Users": "Usuarios",
+    "Start Draw": "Iniciar sorteo"
 }
