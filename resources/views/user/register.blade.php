@@ -13,7 +13,7 @@
                         <form action="{{ route('user.register') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="form">
-                                <div class="md:space-y-2 mb-3">
+                                <div class="md:space-y-2">
                                     <div class="flex items-center py-6">
                                         <div class="w-12 h-12 mr-4 flex-none rounded-xl border overflow-hidden">
                                             <img id="profile-preview" class="w-12 h-12 mr-4 object-cover"
