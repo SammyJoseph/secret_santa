@@ -26,9 +26,11 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $dni = fake()->unique()->numerify('########');
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'dni' => $dni,
+            'email' => $dni . '@secret-santa.local',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'two_factor_secret' => null,
@@ -67,6 +69,17 @@ class UserFactory extends Factory
                 ])
                 ->when(is_callable($callback), $callback),
             'ownedTeams'
+        );
+    }
+
+    /**
+     * Indicate that the user should have gift suggestions.
+     */
+    public function withGiftSuggestions(int $count = 3): static
+    {
+        return $this->has(
+            \App\Models\GiftSuggestion::factory()->count($count),
+            'giftSuggestions'
         );
     }
 }

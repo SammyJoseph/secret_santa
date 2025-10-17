@@ -1,10 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 
 Route::get('/registro', function () {
     return view('user.register');
 });
+Route::post('/registro', [UserController::class, 'store'])->name('user.register');
+Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');
+Route::get('/temp-image/{filename}', [UserController::class, 'getTempImage'])->name('user.temp-image');
+
+Route::get('/perfil', function () {
+    return view('user.profile');
+})->name('user.profile');
 
 Route::middleware([
     'auth:sanctum',
@@ -14,4 +23,6 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    Route::resource('admin/user', AdminUserController::class);
 });

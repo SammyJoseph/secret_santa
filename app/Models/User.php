@@ -27,8 +27,10 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'dni',
         'email',
         'password',
+        'profile_photo_path',
     ];
 
     /**
@@ -63,5 +65,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function giftSuggestions()
+    {
+        return $this->hasMany(GiftSuggestion::class);
     }
 }
