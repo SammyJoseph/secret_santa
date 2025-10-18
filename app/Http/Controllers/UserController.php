@@ -121,7 +121,7 @@ class UserController extends Controller
     public function tempUpload(Request $request)
     {
         $request->validate([
-            'profile_photo_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_photo_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
         if ($request->hasFile('profile_photo_path')) {

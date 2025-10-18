@@ -192,6 +192,9 @@
 
                 fetch('{{ route("user.temp-upload") }}', {
                     method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     body: formData
                 })
                 .then(response => response.json())

@@ -21,7 +21,9 @@
                                                 alt="Avatar Upload">
                                         </div>
                                         <label class="cursor-pointer ">
-                                            <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">Cambiar Foto</span>
+                                            <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">
+                                                Subir Foto
+                                            </span>
                                             <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*">
                                         </label>
                                         <input type="hidden" name="temp_image_filename" id="temp-image-filename" value="{{ session('temp_profile_image') }}">
@@ -184,6 +186,9 @@
 
                 fetch('{{ route("user.temp-upload") }}', {
                     method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     body: formData
                 })
                 .then(response => response.json())
