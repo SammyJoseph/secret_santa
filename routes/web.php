@@ -37,6 +37,8 @@ Route::middleware([
     })->name('dashboard');
 
     Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
+    Route::post('admin/users/{user}/assign-family', [App\Http\Controllers\Admin\FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
+    Route::delete('admin/users/{user}/remove-family', [App\Http\Controllers\Admin\FamilyController::class, 'remove'])->middleware('is_admin')->name('admin.users.remove-family');
     Route::get('admin/draw', [App\Http\Controllers\Admin\DrawController::class, 'index'])->middleware('is_admin')->name('admin.draw');
     Route::post('admin/draw/start', [App\Http\Controllers\Admin\DrawController::class, 'start'])->middleware('is_admin')->name('admin.draw.start');
     Route::get('/perfil', [UserController::class, 'profile'])->name('user.profile');

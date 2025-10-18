@@ -13,7 +13,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::orderBy('created_at', 'desc')->get();
+        $users = User::with('secretSantaAssignment.receiver')->orderBy('created_at', 'desc')->get();
         return view('admin.users.index', compact('users'));
     }
 
