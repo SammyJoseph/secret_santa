@@ -29,6 +29,26 @@
             <div class="p-10">            
                 <div class="grid gap-8 grid-cols-1 md:grid-cols-2">
                     <!-- Left Column: Secret Friend Placeholder -->
+                    @if($isRevealed && $secretSanta)
+                    <div class="flex flex-col items-center">
+                        <h3 class="font-semibold text-lg mb-6">Mi Amigo Secreto es <span class="text-[#146B3A]">{{ $secretSanta->name }}</span></h3>
+                        <div class="w-3/4 aspect-square bg-white rounded-lg border-4 border-[#146B3A] overflow-auto mb-3">
+                            <img class="object-cover" src="{{ $secretSanta->profile_photo_url }}" alt="Foto de {{ $secretSanta->name }}">                                
+                        </div>
+                        {{-- <h4 class="text-xl font-bold text-center text-gray-800 mb-3">{{ $secretSanta->name }}</h4> --}}
+                        <div class="mb-3 text-center">
+                            <p class="text-sm font-semibold text-gray-600 mb-2">Le puedo regalar:</p>
+                            <ul class="text-xs text-gray-500 space-y-1">
+                                @foreach($secretSanta->giftSuggestions as $suggestion)
+                                    <li>• {{ $suggestion->suggestion }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        <div class="text-center text-[#146B3A] text-sm font-semibold">
+                            ¡Mucha suerte en tu búsqueda del regalo perfecto!
+                        </div>                        
+                    </div>
+                    @else
                     <div class="flex flex-col items-center space-y-6">
                         <h3 class="font-semibold text-lg">Mi Amigo Secreto</h3>
                         <div class="w-3/4 aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
@@ -40,6 +60,7 @@
                             <!-- Countdown will be populated by JavaScript -->
                         </div>
                     </div>
+                    @endif
 
                     <!-- Right Column: User Profile Edit -->
                     <div class="flex flex-col">
@@ -112,7 +133,7 @@
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
                                     <button type="button" onclick="document.getElementById('logout-form').submit();" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cerrar Sesión</button>
-                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Guardar Cambios</button>
+                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800" @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif>Guardar Cambios</button>
                                 </div>
                             </div>
                         </form>
@@ -200,9 +221,12 @@
             }
         });
 
-        // Countdown to November 1, 2025
+        // Countdown to reveal date from server
         function updateCountdown() {
-            const targetDate = new Date('2025-11-01T00:00:00');
+            const countdownElement = document.getElementById('countdown');
+            if (!countdownElement) return; // Exit if element doesn't exist
+
+            const targetDate = new Date('{{ $revealDateJs }}');
             const now = new Date();
             const diff = targetDate - now;
 
@@ -212,12 +236,12 @@
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-                document.getElementById('countdown').innerHTML = `
+                countdownElement.innerHTML = `
                     <p>La información se revelará en:</p>
                     <p class="font-semibold">${days} días, ${hours} horas, ${minutes} minutos, ${seconds} segundos</p>
                 `;
             } else {
-                document.getElementById('countdown').innerHTML = '<p>¡El momento ha llegado!</p>';
+                countdownElement.innerHTML = '<p>¡El momento ha llegado!</p><p class="mt-2"><a href="#" onclick="location.reload()" class="text-blue-600 hover:text-blue-800 underline">Haz clic aquí para ver tu Amigo Secreto</a></p>';
             }
         }
 

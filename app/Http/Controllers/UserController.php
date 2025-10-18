@@ -6,6 +6,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Models\GiftSuggestion;
+use App\Models\SecretSantaAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -98,7 +99,23 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        return view('user.profile', compact('user'));
+        
+        $revealDate = new \DateTime('2025-10-17 19:54:00'); // Reveal date for Secret Santa users
+        $now = new \DateTime();
+        $isRevealed = $now >= $revealDate;
+
+        $secretSanta = null;
+        if ($isRevealed) {
+            $assignment = SecretSantaAssignment::where('giver_id', $user->id)->with('receiver')->first();
+            if ($assignment) {
+                $secretSanta = $assignment->receiver;
+            }
+        }
+
+        // Format date for JavaScript
+        $revealDateJs = $revealDate->format('Y-m-d\TH:i:s');
+
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs'));
     }
 
     public function tempUpload(Request $request)
