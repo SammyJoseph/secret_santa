@@ -225,10 +225,26 @@
         });
 
         // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+
         document.getElementById('toggle-password').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
+
+            // Guarda la posición del cursor antes de cambiar el tipo
+            const start = passwordInput.selectionStart;
+            const end = passwordInput.selectionEnd;
+
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
+
+            // Mantiene el foco en el input
+            passwordInput.focus();
+
+            // Restaura la posición del cursor
+            passwordInput.setSelectionRange(start, end);
+
             const svg = this.querySelector('svg');
             if (type === 'password') {
                 svg.outerHTML = '<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
@@ -237,10 +253,26 @@
             }
         });
 
+        document.getElementById('toggle-password-confirmation').addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+
         document.getElementById('toggle-password-confirmation').addEventListener('click', function() {
             const passwordConfirmationInput = document.getElementById('password_confirmation');
+
+            // Guarda la posición del cursor antes de cambiar el tipo
+            const start = passwordConfirmationInput.selectionStart;
+            const end = passwordConfirmationInput.selectionEnd;
+
             const type = passwordConfirmationInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordConfirmationInput.setAttribute('type', type);
+
+            // Mantiene el foco en el input
+            passwordConfirmationInput.focus();
+
+            // Restaura la posición del cursor
+            passwordConfirmationInput.setSelectionRange(start, end);
+
             const svg = this.querySelector('svg');
             if (type === 'password') {
                 svg.outerHTML = '<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>';
