@@ -22,16 +22,19 @@ class UserSeeder extends Seeder
         $user = User::factory()->withGiftSuggestions(3)->create([
             'name' => 'Sam',
             'dni' => '47003307',
-            'email' => 'sam@example.com',
+            'email' => 'sam@artisam.dev',
             'is_admin' => true,
+            'password' => bcrypt('amelieS2691$'),
         ]);
 
         $this->downloadAndSaveProfileImage($user);
 
-        // Create 10 random users
-        User::factory(10)->withGiftSuggestions(3)->create()->each(function ($user) {
-            $this->downloadAndSaveProfileImage($user);
-        });
+        // Create 10 random users only in local environment
+        if (app()->environment('local')) {
+            User::factory(10)->withGiftSuggestions(3)->create()->each(function ($user) {
+                $this->downloadAndSaveProfileImage($user);
+            });
+        }
     }
 
     /**
