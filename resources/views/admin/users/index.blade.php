@@ -100,6 +100,9 @@
                                             <option value="">Agregar al grupo familiar</option>
                                             @php
                                                 $familyIds = $allFamilyMembers->pluck('id')->push($user->id);
+                                                if ($user->family_id) {
+                                                    $familyIds = $familyIds->merge($users->where('family_id', $user->family_id)->pluck('id'));
+                                                }
                                             @endphp
                                             @foreach($users->whereNotIn('id', $familyIds) as $potentialFamily)
                                                 <option value="{{ $potentialFamily->id }}">{{ $potentialFamily->name }} ({{ $potentialFamily->dni }})</option>

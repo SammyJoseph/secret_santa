@@ -23,9 +23,15 @@ class FamilyController extends Controller
             return redirect()->back()->with('error', 'Esta relación familiar ya existe.');
         }
 
-        // Create bidirectional relationship
-        $user->familyMembers()->attach($familyMember->id);
-        $familyMember->familyMembers()->attach($user->id);
+        // If user has no family_id, set it to their own id
+        if (!$user->family_id) {
+            $user->family_id = $user->id;
+            $user->save();
+        }
+
+        // Set familyMember's family_id to user's family_id
+        $familyMember->family_id = $user->family_id;
+        $familyMember->save();
 
         return redirect()->back()->with('success', 'Familiar asignado correctamente.');
     }
@@ -38,9 +44,16 @@ class FamilyController extends Controller
 
         $familyMember = User::find($request->family_member_id);
 
-        // Remove bidirectional relationship
-        $user->familyMembers()->detach($familyMember->id);
-        $familyMember->familyMembers()->detach($user->id);
+        // Set familyMember's family_id to null
+        $familyMember->family_id = null;
+        $familyMember->save();
+
+        // If the user who initiated the removal now has no family members left, set their family_id to null
+        $remainingFamily = User::where('family_id', $user->family_id)->where('id', '!=', $user->id)->count();
+        if ($remainingFamily == 0) {
+            $user->family_id = null;
+            $user->save();
+        }
 
         return redirect()->back()->with('success', 'Familiar removido correctamente.');
     }

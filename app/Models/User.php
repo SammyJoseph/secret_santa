@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -33,6 +32,7 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'profile_photo_path',
+        'family_id',
     ];
 
     /**
@@ -74,33 +74,18 @@ class User extends Authenticatable
         return $this->hasMany(GiftSuggestion::class);
     }
 
-    public function familyMembers()
-    {
-        return $this->belongsToMany(User::class, 'family_relationships', 'user_id', 'family_member_id')
-                    ->select('users.*');
-    }
 
     public function getAllFamilyMembers()
     {
-        // Get all direct relationships (both directions)
-        $directRelations = DB::table('family_relationships')
-            ->where('user_id', $this->id)
-            ->pluck('family_member_id')
-            ->merge(
-                DB::table('family_relationships')
-                    ->where('family_member_id', $this->id)
-                    ->pluck('user_id')
-            )
-            ->unique()
-            ->filter() // Remove nulls
-            ->toArray();
-
-        return self::whereIn('id', $directRelations)->get();
+        if ($this->family_id) {
+            return self::where('family_id', $this->family_id)->where('id', '!=', $this->id)->get();
+        }
+        return collect();
     }
 
     public function isFamilyWith(User $user)
     {
-        return $this->getAllFamilyMembers()->contains('id', $user->id);
+        return $this->family_id && $this->family_id === $user->family_id;
     }
 
     public function secretSantaAssignment()
