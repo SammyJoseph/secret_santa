@@ -1,8 +1,8 @@
 <x-guest-layout>
-    <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
+    <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-6 md:py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
         style="background-image: url('{{ asset('assets/images/xbg.jpg') }}');">
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
-        <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
+        <div class="max-w-lg w-full space-y-8 p-5 md:p-10 bg-white rounded-xl shadow-lg z-10">
             <div class="grid  gap-8 grid-cols-1">
                 <div class="flex flex-col ">
                     <div class="flex flex-col sm:flex-row items-center">
@@ -34,7 +34,7 @@
                                     @enderror
                                 </div>
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs">
-                                    <div class="space-y-2 w-full text-xs">
+                                    <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
                                         <label class="font-semibold text-gray-600 py-2">Nombre</label>
                                         <input placeholder="Nombre" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
                                             type="text" name="name" id="name" value="{{ old('name') }}">
@@ -73,7 +73,7 @@
                                             </div>
                                             <input type="text" name="gift_suggestions[0]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.0') }}">
+                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.0') }}" autocomplete="off">
                                         </div>
                                         @error('gift_suggestions.0')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -90,7 +90,7 @@
                                             </div>
                                             <input type="text" name="gift_suggestions[1]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.1') }}">
+                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.1') }}" autocomplete="off">
                                         </div>
                                         @error('gift_suggestions.1')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -107,7 +107,7 @@
                                             </div>
                                             <input type="text" name="gift_suggestions[2]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.2') }}">
+                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.2') }}" autocomplete="off">
                                         </div>
                                         @error('gift_suggestions.2')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -118,7 +118,7 @@
                                     <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
                                         <label class="font-semibold text-gray-600 py-2">Contraseña</label>
                                         <input placeholder="Crea una contraseña fácil" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
-                                            type="password" name="password" id="password">
+                                            type="password" name="password" id="password" autocomplete="new-password">
                                         @error('password')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
@@ -126,7 +126,7 @@
                                     <div class="space-y-2 w-full text-xs">
                                         <label class="font-semibold text-gray-600 py-2">Confirmar Contraseña</label>
                                         <input placeholder="Vuelve a escribirla" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required" type="password"
-                                            name="password_confirmation" id="password_confirmation">
+                                            name="password_confirmation" id="password_confirmation" autocomplete="new-password">
                                     </div>
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
