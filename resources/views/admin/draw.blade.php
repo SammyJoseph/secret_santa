@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ showModal: false, confirmInput: '', error: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-md sm:rounded-lg">
                 <div class="p-6">
@@ -23,12 +23,51 @@
                             <p class="text-gray-600 mb-6">
                                 Una vez iniciado el sorteo, todos los participantes recibirán su amigo secreto asignado de manera aleatoria.
                             </p>
-                            <form action="{{ route('admin.draw.start') }}" method="POST" class="inline-block">
-                                @csrf
-                                <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105">
-                                    START DRAW 🎄
-                                </button>
-                            </form>
+                            <button @click="showModal = true" class="bg-red-500 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105">
+                                START DRAW 🎄
+                            </button>
+                        </div>
+
+                        <!-- Confirmation Modal -->
+                        <div x-show="showModal" x-transition class="fixed inset-0 z-50 overflow-y-auto" x-on:keydown.escape.window="showModal = false">
+                            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                                <div class="fixed inset-0 transition-opacity" x-on:click="showModal = false">
+                                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                                </div>
+                                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <div class="sm:flex sm:items-start">
+                                            <div class="mx-auto shrink-0 flex items-center justify-center size-12 rounded-full bg-red-100 sm:mx-0 sm:size-10">
+                                                <svg class="size-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                                </svg>
+                                            </div>
+                                            <div class="mt-3 text-center sm:mt-0 sm:ms-4 sm:text-start">
+                                                <h3 class="text-lg font-medium text-gray-900">
+                                                    Confirmar Inicio del Sorteo
+                                                </h3>
+                                                <div class="mt-4 text-sm text-gray-600">
+                                                    <p class="mb-4">Esta acción iniciará el sorteo de Secret Santa. Una vez iniciado, no se puede deshacer.</p>
+                                                    <p class="mb-4">Para confirmar, escribe <strong>"iniciar sorteo"</strong> en el campo a continuación:</p>
+                                                    <input x-model="confirmInput" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Escribe 'iniciar sorteo'">
+                                                    <p x-show="error" class="mt-2 text-red-600 text-sm">El texto no coincide. Inténtalo de nuevo.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                        <form action="{{ route('admin.draw.start') }}" method="POST" class="inline-block">
+                                            @csrf
+                                            <button type="submit" @click="if (confirmInput.toLowerCase() !== 'iniciar sorteo') { error = true; $event.preventDefault(); } else { error = false; showModal = false; }" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                                Iniciar Sorteo
+                                            </button>
+                                        </form>
+                                        <button @click="showModal = false; confirmInput = ''; error = false;" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @else
                         <div class="text-center">
@@ -77,8 +116,4 @@
                             </div>
                         </div>
                     @endif
-                </div>
-            </div>
-        </div>
-    </div>
 </x-app-layout>

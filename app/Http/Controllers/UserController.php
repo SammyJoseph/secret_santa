@@ -23,7 +23,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'dni' => $validated['dni'],
-            'email' => $validated['email'] ?? $validated['dni'] . '@secret-santa.local',
+            'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 

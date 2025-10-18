@@ -43,19 +43,15 @@
                                         @enderror
                                     </div>
                                     <div class="space-y-2 w-full text-xs">
-                                        <label class="font-semibold text-gray-600 py-2">DNI</label>
-                                        <input placeholder="87654321"
-                                            class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                            required
-                                            type="text"
-                                            name="dni"
-                                            id="dni"
-                                            value="{{ old('dni') }}"
-                                            minlength="8"
-                                            maxlength="8"
-                                            pattern="\d{8}"
-                                            title="Ingresar 8 dígitos"
-                                            />
+                                        <div class="flex items-center space-x-2">
+                                            <label class="font-semibold text-gray-600">DNI</label>
+                                            <div class="tooltip">
+                                              <svg class="w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#4b5563"><path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
+                                              <span class="tooltiptext">Para evitar registros duplicados.</span>
+                                            </div>
+                                        </div>
+                                        <input placeholder="87654321" required type="text" name="dni" id="dni" value="{{ old('dni') }}" minlength="8" maxlength="8" pattern="\d{8}" title="Ingresar 8 dígitos"
+                                            class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"/>
                                         @error('dni')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
@@ -90,7 +86,7 @@
                                             </div>
                                             <input type="text" name="gift_suggestions[1]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.1') }}" autocomplete="off">
+                                                placeholder="O también me gustaría recibir..." value="{{ old('gift_suggestions.1') }}" autocomplete="off">
                                         </div>
                                         @error('gift_suggestions.1')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -107,7 +103,7 @@
                                             </div>
                                             <input type="text" name="gift_suggestions[2]" required
                                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.2') }}" autocomplete="off">
+                                                placeholder="O quizás me gustaría recibir..." value="{{ old('gift_suggestions.2') }}" autocomplete="off">
                                         </div>
                                         @error('gift_suggestions.2')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -116,17 +112,33 @@
                                 </div>
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs mt-6">
                                     <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
-                                        <label class="font-semibold text-gray-600 py-2">Contraseña</label>
-                                        <input placeholder="Crea una contraseña fácil" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
-                                            type="password" name="password" id="password" autocomplete="new-password">
+                                        <label class="font-semibold text-gray-600 py-2">Crear Contraseña</label>
+                                        <div class="relative">
+                                            <input placeholder="Fácil de recordar" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 pr-10 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
+                                                type="password" name="password" id="password" autocomplete="new-password">
+                                            <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" id="toggle-password">
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                         @error('password')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
                                     </div>
                                     <div class="space-y-2 w-full text-xs">
                                         <label class="font-semibold text-gray-600 py-2">Confirmar Contraseña</label>
-                                        <input placeholder="Vuelve a escribirla" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required" type="password"
-                                            name="password_confirmation" id="password_confirmation" autocomplete="new-password">
+                                        <div class="relative">
+                                            <input placeholder="Vuelve a escribirla" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 pr-10 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required" type="password"
+                                                name="password_confirmation" id="password_confirmation" autocomplete="new-password">
+                                            <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" id="toggle-password-confirmation">
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
@@ -145,6 +157,45 @@
     <style>
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 100%;
+            margin-left: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -5px;
+            margin-top: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent #555 transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
     @endsection
@@ -217,6 +268,38 @@
                 tempImageFilename.value = '';
             }
         });
+
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('svg').innerHTML = type === 'password' ?
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>' :
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>';
+        });
+
+        document.getElementById('toggle-password-confirmation').addEventListener('click', function() {
+            const passwordConfirmationInput = document.getElementById('password_confirmation');
+            const type = passwordConfirmationInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordConfirmationInput.setAttribute('type', type);
+            this.querySelector('svg').innerHTML = type === 'password' ?
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>' :
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>';
+        });
+
+        // Tooltip for mobile (click to show/hide)
+        const tooltip = document.querySelector('.tooltip');
+        const tooltipText = document.querySelector('.tooltiptext');
+
+        if (tooltip && tooltipText) {
+            tooltip.addEventListener('click', function() {
+                if (window.innerWidth <= 768) { // Assuming mobile breakpoint
+                    tooltipText.style.visibility = tooltipText.style.visibility === 'visible' ? 'hidden' : 'visible';
+                    tooltipText.style.opacity = tooltipText.style.opacity === '1' ? '0' : '1';
+                }
+            });
+        }
     </script>
     @endsection
 </x-guest-layout>

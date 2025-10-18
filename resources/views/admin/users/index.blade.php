@@ -23,12 +23,6 @@
                                     Nombre
                                 </th>
                                 <th scope="col" class="px-6 py-3">
-                                    DNI
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Email
-                                </th>
-                                <th scope="col" class="px-6 py-3">
                                     Sugerencias de Regalo
                                 </th>
                                 <th scope="col" class="px-6 py-3">
@@ -53,19 +47,13 @@
                                     <img class="w-10 h-10 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
                                     <div class="ps-3">
                                         <div class="text-base font-semibold">{{ $user->name }}</div>
-                                        <div class="font-normal text-gray-500">{{ $user->email }}</div>
+                                        <div class="font-normal text-gray-500">{{ $user->dni }}</div>
                                     </div>
                                 </th>
                                 <td class="px-6 py-4">
-                                    {{ $user->dni }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ $user->email }}
-                                </td>
-                                <td class="px-6 py-4">
                                     <ul class="list-disc list-inside">
                                         @foreach($user->giftSuggestions as $suggestion)
-                                            <li>{{ $suggestion->suggestion }}</li>
+                                            <li class="whitespace-nowrap">{{ $suggestion->suggestion }}</li>
                                         @endforeach
                                     </ul>
                                 </td>
