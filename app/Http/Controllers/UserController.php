@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Encoders\PngEncoder;
 
 class UserController extends Controller
 {
@@ -23,19 +27,32 @@ class UserController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'dni' => $validated['dni'],
-            'email' => $validated['email'],
+            'email' => $validated['email'] ?? null,
             'password' => Hash::make($validated['password']),
         ]);
 
         if ($request->hasFile('profile_photo_path')) {
             $this->saveProfileImage($user, $request->file('profile_photo_path'));
         } elseif ($request->input('temp_image_filename')) {
-            // Move temp image to permanent storage
+            // Move temp image to permanent storage with resizing
             $tempFilename = $request->input('temp_image_filename');
             $tempPath = storage_path('app/public/temp/' . $tempFilename);
             if (file_exists($tempPath)) {
                 $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
-                Storage::disk('public')->put($filename, file_get_contents($tempPath));
+
+                // Resize temp image to 600px width maintaining aspect ratio
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($tempPath);
+                $image->scale(width: 600);
+
+                // Save resized image to permanent storage
+                $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
+                if ($extension === 'png') {
+                    Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+                } else {
+                    Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+                }
+
                 $user->update(['profile_photo_path' => $filename]);
                 // Clean up temp file
                 unlink($tempPath);
@@ -68,12 +85,25 @@ class UserController extends Controller
         if ($request->hasFile('profile_photo_path')) {
             $this->saveProfileImage($user, $request->file('profile_photo_path'));
         } elseif ($request->input('temp_image_filename')) {
-            // Move temp image to permanent storage
+            // Move temp image to permanent storage with resizing
             $tempFilename = $request->input('temp_image_filename');
             $tempPath = storage_path('app/public/temp/' . $tempFilename);
             if (file_exists($tempPath)) {
                 $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
-                Storage::disk('public')->put($filename, file_get_contents($tempPath));
+
+                // Resize temp image to 600px width maintaining aspect ratio
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($tempPath);
+                $image->scale(width: 600);
+
+                // Save resized image to permanent storage
+                $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
+                if ($extension === 'png') {
+                    Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+                } else {
+                    Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+                }
+
                 $user->update(['profile_photo_path' => $filename]);
                 // Clean up temp file
                 unlink($tempPath);
@@ -100,7 +130,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
         
-        $revealDate = new \DateTime('2025-11-01 12:00:00'); // Reveal date for Secret Santa users
+        $revealDate = new \DateTime('2025-10-26 12:00:00'); // Reveal date for Secret Santa users
         $now = new \DateTime();
         $isRevealed = $now >= $revealDate;
 
@@ -160,8 +190,18 @@ class UserController extends Controller
              // Generate a unique filename
              $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . $imageFile->getClientOriginalExtension();
 
+             // Resize image to 600px width maintaining aspect ratio
+             $manager = new ImageManager(new Driver());
+             $image = $manager->read($imageFile->getRealPath());
+             $image->scale(width: 600);
+
              // Save to storage/app/public
-             Storage::disk('public')->put($filename, file_get_contents($imageFile->getRealPath()));
+             $extension = strtolower($imageFile->getClientOriginalExtension());
+             if ($extension === 'png') {
+                 Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+             } else {
+                 Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+             }
 
              // Update user's profile_photo_path
              $user->update(['profile_photo_path' => $filename]);
