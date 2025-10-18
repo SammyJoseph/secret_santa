@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="mt-6">
                                     <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 1</label>
+                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 1. <span class="text-gray-400">Sé lo más específico posible.</span></label>
                                         <div class="flex flex-wrap items-stretch w-full mb-4 relative">
                                             <div class="flex">
                                                 <span
@@ -67,9 +67,9 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[0]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.0') }}" autocomplete="off">
+                                            <textarea name="gift_suggestions[0]" required
+                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
+                                                placeholder="Me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.0') }}</textarea>
                                         </div>
                                         @error('gift_suggestions.0')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -84,9 +84,9 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[1]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="O también me gustaría recibir..." value="{{ old('gift_suggestions.1') }}" autocomplete="off">
+                                            <textarea name="gift_suggestions[1]" required
+                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
+                                                placeholder="O también me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.1') }}</textarea>
                                         </div>
                                         @error('gift_suggestions.1')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -101,9 +101,9 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[2]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="O quizás me gustaría recibir..." value="{{ old('gift_suggestions.2') }}" autocomplete="off">
+                                            <textarea name="gift_suggestions[2]" required
+                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
+                                                placeholder="O también me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.2') }}</textarea>
                                         </div>
                                         @error('gift_suggestions.2')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
