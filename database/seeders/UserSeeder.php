@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
             'dni' => '47003307',
             'email' => 'sam@artisam.dev',
             'is_admin' => true,
-            'password' => bcrypt('amelieS2691$'),
+            'password' => bcrypt(env('ADMIN_DEFAULT_PASSWORD')),
         ]);
 
         $this->downloadAndSaveProfileImage($user);
