@@ -73,7 +73,7 @@
                             @method('PUT')
                             <div class="form">
                                 <div class="md:space-y-2">
-                                    <div class="flex items-center py-6">
+                                    <div class="flex items-center pb-3 md:py-6">
                                         <div class="w-12 h-12 mr-4 flex-none rounded-full border overflow-hidden cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview').src">
                                             <img id="profile-preview" class="w-12 h-12 object-cover rounded-full"
                                                 src="{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}"
@@ -90,7 +90,7 @@
                                     @enderror
                                 </div>
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs">
-                                    <div class="space-y-2 w-full text-xs">
+                                    <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
                                         <label class="font-semibold text-gray-600 py-2">Nombre</label>
                                         <input placeholder="Nombre" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
                                             type="text" name="name" id="name" value="{{ old('name', auth()->user()->name) }}">
