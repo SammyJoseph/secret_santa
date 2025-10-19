@@ -54,7 +54,6 @@
                                                     Confirmar Inicio del Sorteo
                                                 </h3>
                                                 <div class="mt-4 text-sm text-gray-600">
-                                                    <p class="mb-4">Esta acción iniciará el sorteo de Secret Santa. Una vez iniciado, no se puede deshacer.</p>
                                                     <p class="mb-4">Para confirmar, escribe <strong>"iniciar sorteo"</strong> en el campo a continuación:</p>
                                                     <input x-model="confirmInput" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                                                     <p x-show="error" class="mt-2 text-red-600 text-sm">El texto no coincide. Inténtalo de nuevo.</p>

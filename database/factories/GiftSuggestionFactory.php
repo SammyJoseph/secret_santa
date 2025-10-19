@@ -18,7 +18,7 @@ class GiftSuggestionFactory extends Factory
     {
         return [
             'user_id' => \App\Models\User::factory(),
-            'suggestion' => fake()->sentence(2),
+            'suggestion' => fake()->sentence(),
         ];
     }
 }

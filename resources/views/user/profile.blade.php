@@ -37,21 +37,21 @@
                         </div>
                         {{-- <h4 class="text-xl font-bold text-center text-gray-800 mb-3">{{ $secretSanta->name }}</h4> --}}
                         <div class="mb-3 text-center">
-                            <p class="text-sm font-semibold text-gray-600 mb-2">Le puedo regalar:</p>
-                            <ul class="text-xs text-gray-500 space-y-1">
+                            <p class="text-sm font-semibold text-gray-600 mb-2">A {{ $secretSanta->name }} le gustaría recibir:</p>
+                            <ul class="text-sm text-gray-500 space-y-1">
                                 @foreach($secretSanta->giftSuggestions as $suggestion)
                                     <li>• {{ $suggestion->suggestion }}</li>
                                 @endforeach
                             </ul>
                         </div>
                         <div class="text-center text-[#146B3A] text-sm font-semibold">
-                            ¡Mucha suerte en tu búsqueda del regalo perfecto!
+                            ¡Mucha suerte en tu búsqueda del regalo perfecto! 🎁
                         </div>                        
                     </div>
                     @else
                     <div class="flex flex-col items-center space-y-6">
-                        <h3 class="font-semibold text-lg">Mi Amigo Secreto</h3>
-                        <div class="w-3/4 aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+                        <h3 class="font-semibold text-lg">Mi Amigo Secreto es...</h3>
+                        <div class="w-3/4 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
                             <svg class="h-16 w-16 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -65,7 +65,7 @@
                     <!-- Right Column: User Profile Edit -->
                     <div class="flex flex-col" x-data="{ showModal: false, modalImage: '' }">
                         <div class="flex flex-col sm:flex-row items-center">
-                            <h2 class="font-semibold text-lg mr-auto">Mi Perfil</h2>
+                            <h2 class="font-semibold text-lg mr-auto">Editar mi Perfil</h2>
                             <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
                         </div>
                         <form action="{{ route('user.update', $user) }}" method="POST" enctype="multipart/form-data">
@@ -132,7 +132,7 @@
                                     @endforeach
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
-                                    <button type="button" onclick="document.getElementById('logout-form').submit();" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cerrar Sesión</button>
+                                    <button type="button" onclick="document.getElementById('logout-form').submit();" class="text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cerrar Sesión</button>
                                     <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800" @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif>Guardar Cambios</button>
                                 </div>
                             </div>
