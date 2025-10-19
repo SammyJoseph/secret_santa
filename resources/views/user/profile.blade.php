@@ -32,8 +32,8 @@
                     @if($isRevealed && $secretSanta)
                     <div class="flex flex-col items-center">
                         <h3 class="font-semibold text-lg mb-6">Mi Amigo Secreto es <span class="text-[#146B3A]">{{ $secretSanta->name }}</span></h3>
-                        <div class="w-3/4 aspect-square bg-white rounded-lg border-4 border-[#146B3A] overflow-auto mb-3">
-                            <img class="object-cover" src="{{ $secretSanta->profile_photo_url }}" alt="Foto de {{ $secretSanta->name }}">                                
+                        <div class="w-3/4 aspect-square bg-white rounded-full border-4 border-[#146B3A] overflow-hidden mb-3">
+                            <img class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->profile_photo_url }}" alt="Foto de {{ $secretSanta->name }}">
                         </div>
                         {{-- <h4 class="text-xl font-bold text-center text-gray-800 mb-3">{{ $secretSanta->name }}</h4> --}}
                         <div class="mb-3 text-center">
@@ -74,8 +74,8 @@
                             <div class="form">
                                 <div class="md:space-y-2">
                                     <div class="flex items-center py-6">
-                                        <div class="w-12 h-12 mr-4 flex-none rounded-xl border overflow-hidden cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview').src">
-                                            <img id="profile-preview" class="w-12 h-12 mr-4 object-cover"
+                                        <div class="w-12 h-12 mr-4 flex-none rounded-full border overflow-hidden cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview').src">
+                                            <img id="profile-preview" class="w-12 h-12 object-cover rounded-full"
                                                 src="{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}"
                                                 alt="Avatar Upload">
                                         </div>

@@ -22,9 +22,11 @@
                                 <th scope="col" class="px-6 py-3">
                                     Nombre
                                 </th>
+                                @if(config('app.env') === 'local')
                                 <th scope="col" class="px-6 py-3">
                                     Amigo Secreto
                                 </th>
+                                @endif
                                 <th scope="col" class="px-6 py-3">
                                     Grupo Familiar
                                 </th>
@@ -56,6 +58,7 @@
                                         <div class="font-normal text-gray-500">{{ $user->dni }}</div>
                                     </div>
                                 </th>
+                                @if(config('app.env') === 'local')
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($user->secretSantaAssignment)
                                         <div class="flex items-center">
@@ -69,6 +72,7 @@
                                         <span class="text-gray-400 text-sm">No asignado</span>
                                     @endif
                                 </td>
+                                @endif
                                 <td class="px-6 py-4">
                                     @php
                                         $allFamilyMembers = $user->getAllFamilyMembers();
@@ -127,7 +131,7 @@
                             </tr>
                             @empty
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                <td colspan="{{ config('app.env') === 'local' ? 7 : 6 }}" class="px-6 py-4 text-center text-gray-500">
                                     No hay usuarios registrados aún.
                                 </td>
                             </tr>
