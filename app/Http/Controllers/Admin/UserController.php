@@ -5,6 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Encoders\PngEncoder;
 
 class UserController extends Controller
 {
@@ -44,17 +50,26 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(User $user)
     {
-        //
+        $users = User::with('secretSantaAssignment.receiver')->orderBy('created_at', 'desc')->get();
+        return view('admin.users.edit', compact('user', 'users'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $request->validate([
+            'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
+
+        if ($request->hasFile('profile_photo_path')) {
+            $this->saveProfileImage($user, $request->file('profile_photo_path'));
+        }
+
+        return redirect()->route('admin.users.edit', $user)->with('success', 'Perfil actualizado con éxito.');
     }
 
     /**
@@ -63,5 +78,35 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Save the profile image for the user.
+     */
+    private function saveProfileImage(User $user, $imageFile): void
+    {
+        try {
+            // Generate a unique filename
+            $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . $imageFile->getClientOriginalExtension();
+
+            // Resize image to 600px width maintaining aspect ratio
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($imageFile->getRealPath());
+            $image->scale(width: 600);
+
+            // Save to storage/app/public
+            $extension = strtolower($imageFile->getClientOriginalExtension());
+            if ($extension === 'png') {
+                Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+            } else {
+                Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+            }
+
+            // Update user's profile_photo_path
+            $user->update(['profile_photo_path' => $filename]);
+        } catch (\Exception $e) {
+            // If upload fails, leave profile_photo_path as null
+            // You can log the error if needed
+        }
     }
 }

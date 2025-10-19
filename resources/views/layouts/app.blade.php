@@ -15,6 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Styles -->
+        @yield('css')
         @livewireStyles
     </head>
     <body class="font-sans antialiased">
@@ -40,6 +41,7 @@
 
         @stack('modals')
 
+        @yield('js')
         @livewireScripts
     </body>
 </html>
