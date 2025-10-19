@@ -4,7 +4,7 @@
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
         <div class="max-w-lg w-full space-y-8 p-5 md:p-10 bg-white rounded-xl shadow-lg z-10">
             <div class="grid  gap-8 grid-cols-1">
-                <div class="flex flex-col ">
+                <div class="flex flex-col" x-data="{ showModal: false, modalImage: '' }">
                     <div class="flex flex-col sm:flex-row items-center">
                         <h2 class="font-semibold text-lg mr-auto">Regístrate para participar en "El Amigo Secreto Familiar" de esta Navidad {{ date('Y') }}</h2>
                         <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
@@ -15,7 +15,7 @@
                             <div class="form">
                                 <div class="md:space-y-2">
                                     <div class="flex items-center py-6">
-                                        <div class="w-12 h-12 mr-4 flex-none rounded-xl border overflow-hidden">
+                                        <div class="w-12 h-12 mr-4 flex-none rounded-xl border overflow-hidden cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview').src">
                                             <img id="profile-preview" class="w-12 h-12 mr-4 object-cover"
                                                 src="{{ asset('assets/images/profile.jpg') }}"
                                                 alt="Avatar Upload">
@@ -141,6 +141,15 @@
                                 </div>
                             </div>
                         </form>
+                    </div>
+                    <!-- Image Modal -->
+                    <div x-show="showModal" @keydown.escape.window="showModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;">
+                        <div @click.away="showModal = false" class="relative px-4 rounded-lg shadow-lg max-w-lg w-full">
+                            <img :src="modalImage" alt="Profile image large" class="w-full h-auto rounded-md">
+                            <button @click="showModal = false" class="absolute top-0 right-0 mt-2 mr-2 text-white bg-gray-800 rounded-full p-1 hover:bg-gray-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

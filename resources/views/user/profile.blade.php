@@ -63,7 +63,7 @@
                     @endif
 
                     <!-- Right Column: User Profile Edit -->
-                    <div class="flex flex-col">
+                    <div class="flex flex-col" x-data="{ showModal: false, modalImage: '' }">
                         <div class="flex flex-col sm:flex-row items-center">
                             <h2 class="font-semibold text-lg mr-auto">Mi Perfil</h2>
                             <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
@@ -74,7 +74,7 @@
                             <div class="form">
                                 <div class="md:space-y-2">
                                     <div class="flex items-center py-6">
-                                        <div class="w-12 h-12 mr-4 flex-none rounded-xl border overflow-hidden">
+                                        <div class="w-12 h-12 mr-4 flex-none rounded-xl border overflow-hidden cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview').src">
                                             <img id="profile-preview" class="w-12 h-12 mr-4 object-cover"
                                                 src="{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}"
                                                 alt="Avatar Upload">
@@ -121,9 +121,9 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <input type="text" name="gift_suggestions[{{ $index }}]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 h-10 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
-                                                placeholder="Me gustaría recibir..." value="{{ old('gift_suggestions.' . $index, $suggestion->suggestion) }}">
+                                            <textarea name="gift_suggestions[{{ $index }}]" required
+                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
+                                                placeholder="Me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.' . $index, $suggestion->suggestion) }}</textarea>
                                         </div>
                                         @error('gift_suggestions.' . $index)
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -140,6 +140,16 @@
                         <form id="logout-form" method="POST" action="{{ route('logout') }}" class="hidden">
                             @csrf
                         </form>
+
+                        <!-- Image Modal -->
+                        <div x-show="showModal" @keydown.escape.window="showModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;">
+                            <div @click.away="showModal = false" class="relative px-4 rounded-lg shadow-lg max-w-lg w-full">
+                                <img :src="modalImage" alt="Profile image large" class="w-full h-auto rounded-md">
+                                <button @click="showModal = false" class="absolute top-0 right-0 mt-2 mr-2 text-white bg-gray-800 rounded-full p-1 hover:bg-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
