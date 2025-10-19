@@ -52,7 +52,9 @@
                                     </div>
                                 </td>
                                 <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                                    <img class="w-10 h-10 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                                        <img class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
+                                    </div>
                                     <div class="ps-3">
                                         <div class="text-base font-semibold">{{ $user->name }}</div>
                                         <div class="font-normal text-gray-500">{{ $user->dni }}</div>
