@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-1 sm:py-12">
+    <div class="py-1 sm:py-12" x-data="{ showModal: false, modalImage: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="p-6 bg-white shadow-md sm:rounded-lg">
                 <div class="relative overflow-x-auto">
@@ -35,8 +35,8 @@
                             @forelse($users as $user)
                             <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
                                 <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                                        <img class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview-{{ $user->id }}').src">
+                                        <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
                                     </div>
                                     <div class="ps-3">
                                         <div class="text-base font-semibold">{{ $user->name }}</div>
@@ -76,7 +76,7 @@
                                                 </div>
                                             @endforeach
                                         </div>
-                                    @endif                                    
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     {{ $user->created_at->format('d/m/Y H:i') }}
@@ -91,9 +91,18 @@
                                     No hay usuarios registrados aún.
                                 </td>
                             </tr>
-                            @endforelse                            
+                            @endforelse
                         </tbody>
                     </table>
+                </div>
+                <!-- Image Modal -->
+                <div x-show="showModal" @keydown.escape.window="showModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;">
+                    <div @click.away="showModal = false" class="relative px-4 rounded-lg shadow-lg max-w-lg w-full">
+                        <img x-bind:src="modalImage" alt="Profile image large" class="w-full h-auto rounded-md">
+                        <button @click="showModal = false" class="absolute top-0 right-0 mt-2 mr-2 text-white bg-gray-800 rounded-full p-1 hover:bg-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
