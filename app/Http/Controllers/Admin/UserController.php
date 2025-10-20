@@ -11,6 +11,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\PngEncoder;
+use Illuminate\Support\Facades\URL;
 
 class UserController extends Controller
 {
@@ -78,6 +79,27 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Generate a temporary reset link for the user.
+     */
+    public function generateResetLink(User $user)
+    {
+        $token = Str::random(64);
+        $expiresAt = now()->addMinutes(30); // Link expires in 30 minutes
+
+        $user->update([
+            'reset_token' => $token,
+            'reset_expires_at' => $expiresAt,
+        ]);
+
+        $resetUrl = URL::to('/password/reset/' . $token);
+
+        return response()->json([
+            'reset_url' => $resetUrl,
+            'expires_at' => $expiresAt->toISOString(),
+        ]);
     }
 
     /**

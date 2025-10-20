@@ -27,6 +27,10 @@ Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.upd
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');
 Route::get('/temp-image/{filename}', [UserController::class, 'getTempImage'])->name('user.temp-image');
 
+// Password reset routes
+Route::get('/password/reset/{token}', [App\Http\Controllers\PasswordResetController::class, 'showResetForm'])->name('password.reset.token');
+Route::post('/password/reset', [App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset.update');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -37,6 +41,7 @@ Route::middleware([
     })->name('dashboard'); */
 
     Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
+    Route::post('admin/users/{user}/generate-reset-link', [AdminUserController::class, 'generateResetLink'])->middleware('is_admin')->name('admin.users.generate-reset-link');
     Route::post('admin/users/{user}/assign-family', [App\Http\Controllers\Admin\FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
     Route::delete('admin/users/{user}/remove-family', [App\Http\Controllers\Admin\FamilyController::class, 'remove'])->middleware('is_admin')->name('admin.users.remove-family');
     Route::get('admin/draw', [App\Http\Controllers\Admin\DrawController::class, 'index'])->middleware('is_admin')->name('admin.draw');

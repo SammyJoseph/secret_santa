@@ -33,6 +33,8 @@ class User extends Authenticatable
         'is_admin',
         'profile_photo_path',
         'family_id',
+        'reset_token',
+        'reset_expires_at',
     ];
 
     /**

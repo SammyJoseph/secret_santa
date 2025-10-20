@@ -29,8 +29,16 @@
                                 <li class="flex items-center py-3 text-sm">{{ $suggestion->suggestion }}</li>
                             @endforeach
                         </ul>
-                        <div class="text-center mt-6">
+                        <div class="text-center mt-6 space-y-2">
                             <button type="submit" class="bg-[#146B3A] text-white px-4 py-2 rounded-full hover:bg-green-800">Guardar Cambios</button>
+                            <div>
+                                <button type="button" id="generate-reset-link" class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600" data-user-id="{{ $user->id }}">Generar Enlace de Cambio de Contraseña</button>
+                            </div>
+                            <div id="reset-link-container" class="hidden mt-4 p-4 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-gray-700 mb-2">Enlace generado (válido por 30 minutos):</p>
+                                <input type="text" id="reset-link" readonly class="w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white">
+                                <button type="button" id="copy-link" class="mt-2 bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">Copiar Enlace</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -111,6 +119,44 @@
                 };
                 reader.readAsDataURL(file);
             }
+        });
+
+        // Reset link generation
+        const generateBtn = document.getElementById('generate-reset-link');
+        const resetContainer = document.getElementById('reset-link-container');
+        const resetLinkInput = document.getElementById('reset-link');
+        const copyBtn = document.getElementById('copy-link');
+
+        generateBtn.addEventListener('click', async function() {
+            const userId = this.getAttribute('data-user-id');
+            try {
+                const response = await fetch(`/admin/users/${userId}/generate-reset-link`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resetLinkInput.value = data.reset_url;
+                    resetContainer.classList.remove('hidden');
+                } else {
+                    alert('Error al generar el enlace');
+                }
+            } catch (error) {
+                alert('Error de conexión');
+            }
+        });
+
+        copyBtn.addEventListener('click', function() {
+            resetLinkInput.select();
+            document.execCommand('copy');
+            this.textContent = 'Copiado!';
+            setTimeout(() => {
+                this.textContent = 'Copiar Enlace';
+            }, 2000);
         });
     </script>
     @endsection
