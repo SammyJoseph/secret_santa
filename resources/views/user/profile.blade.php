@@ -51,8 +51,8 @@
                     @else
                     <div class="flex flex-col items-center space-y-6">
                         <h3 class="font-semibold text-lg">Mi Amigo Secreto es...</h3>
-                        <div class="w-3/4 aspect-square bg-gray-200 rounded-full flex items-center justify-center">
-                            <svg class="h-16 w-16 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="w-3/4 aspect-square bg-gray-200 rounded-full flex items-center justify-center flip-container">
+                            <svg class="h-16 w-16 text-gray-500 coin-flip" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
@@ -161,6 +161,20 @@
     <style>
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        }
+
+        @keyframes coinFlip {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        .coin-flip {
+            animation: coinFlip 2s linear infinite;
+            transform-style: preserve-3d;
+        }
+
+        .flip-container {
+            perspective: 1000px;
         }
     </style>
     @endsection

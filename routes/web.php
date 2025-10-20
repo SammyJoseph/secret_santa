@@ -32,9 +32,9 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
+    /* Route::get('/dashboard', function () {
         return view('dashboard');
-    })->name('dashboard');
+    })->name('dashboard'); */
 
     Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
     Route::post('admin/users/{user}/assign-family', [App\Http\Controllers\Admin\FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');

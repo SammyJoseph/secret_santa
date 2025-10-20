@@ -23,14 +23,13 @@ class FamilyController extends Controller
             return redirect()->back()->with('error', 'Esta relación familiar ya existe.');
         }
 
-        // If user has no family_id, set it to their own id
-        if (!$user->family_id) {
-            $user->family_id = $user->id;
-            $user->save();
-        }
+        // Determine the family_id to use: prioritize existing family of familyMember, then user's, then create new
+        $familyId = $familyMember->family_id ?? $user->family_id ?? $user->id;
 
-        // Set familyMember's family_id to user's family_id
-        $familyMember->family_id = $user->family_id;
+        // Assign both users to the determined family_id
+        $user->family_id = $familyId;
+        $familyMember->family_id = $familyId;
+        $user->save();
         $familyMember->save();
 
         return redirect()->back()->with('success', 'Familiar asignado correctamente.');

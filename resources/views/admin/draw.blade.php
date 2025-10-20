@@ -6,8 +6,8 @@
     </x-slot>
 
     <div class="py-12" x-data="{ showModal: false, confirmInput: '', error: false, isDrawing: false }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-md sm:rounded-lg">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="bg-white shadow-md rounded-md sm:rounded-lg">
                 <div class="p-6">
                     @if(session('error'))
                         <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -30,13 +30,13 @@
                                 Una vez iniciado el sorteo, todos los participantes recibirán su amigo secreto asignado de manera aleatoria.
                             </p>
                             <button @click="showModal = true" :disabled="isDrawing" class="bg-red-500 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105 disabled:transform-none">
-                                <span x-show="!isDrawing">INICIAR SORTEO 🎄</span>
-                                <span x-show="isDrawing" class="animate-pulse">SORTEANDO...</span>
+                                <span x-show="!isDrawing" x-cloak>INICIAR SORTEO 🎄</span>
+                                <span x-show="isDrawing" x-cloak class="animate-pulse">SORTEANDO...</span>
                             </button>
                         </div>
 
                         <!-- Confirmation Modal -->
-                        <div x-show="showModal" x-transition class="fixed inset-0 z-50 overflow-y-auto" x-on:keydown.escape.window="showModal = false">
+                        <div x-show="showModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto" x-on:keydown.escape.window="showModal = false">
                             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
                                 <div class="fixed inset-0 transition-opacity" x-on:click="showModal = false">
                                     <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
@@ -62,15 +62,15 @@
                                         </div>
                                     </div>
                                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                        <form action="{{ route('admin.draw.start') }}" method="POST" class="inline-block">
+                                        <form action="{{ route('admin.draw.start') }}" method="POST" class="sm:inline-block">
                                             @csrf
                                             <button type="submit" @click="if (confirmInput.toLowerCase() !== 'iniciar sorteo') { error = true; $event.preventDefault(); } else { error = false; showModal = false; isDrawing = true; }" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
                                                 Iniciar Sorteo
                                             </button>
                                         </form>
-                                        <button @click="showModal = false; confirmInput = ''; error = false;" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                        {{-- <button @click="showModal = false; confirmInput = ''; error = false;" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                                             Cancelar
-                                        </button>
+                                        </button> --}}
                                     </div>
                                 </div>
                             </div>

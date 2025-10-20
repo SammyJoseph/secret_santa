@@ -130,7 +130,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
         
-        $revealDate = new \DateTime('2025-10-25 12:00:00'); // Reveal date for Secret Santa users
+        $revealDate = new \DateTime(env('SECRET_SANTA_REVEAL_DATE'));
         $now = new \DateTime();
         $isRevealed = $now >= $revealDate;
 

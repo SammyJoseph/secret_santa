@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="#">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>
@@ -19,6 +19,16 @@
                         {{ __('Start Draw') }}
                     </x-nav-link>
                 </div>
+            </div>
+
+            <!-- Navigation Links mobile -->
+            <div class="space-x-8 sm:-my-px sm:ms-10 sm:hidden flex items-center">
+                <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.index')">
+                    {{ __('Users') }}
+                </x-nav-link>
+                <x-nav-link href="{{ route('admin.draw') }}" :active="request()->routeIs('admin.draw')">
+                    {{ __('Start Draw') }}
+                </x-nav-link>
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -142,7 +152,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
+            <x-responsive-nav-link href="#" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
         </div>
