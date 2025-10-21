@@ -12,6 +12,11 @@
                     <table class="w-full text-sm text-left rtl:text-right text-gray-500">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
+                                @if(config('app.env') === 'local')
+                                <th scope="col" class="px-6 py-3">
+                                    #
+                                </th>
+                                @endif
                                 <th scope="col" class="px-6 py-3">
                                     Nombre
                                 </th>
@@ -34,6 +39,11 @@
                         <tbody>
                             @forelse($users as $user)
                             <tr class="bg-white border-b border-gray-200 hover:bg-gray-50">
+                                @if(config('app.env') === 'local')
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ $loop->count - $loop->iteration + 1 }}
+                                </td>
+                                @endif
                                 <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap">
                                     <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview-{{ $user->id }}').src">
                                         <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">

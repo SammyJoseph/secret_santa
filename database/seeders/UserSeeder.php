@@ -29,9 +29,8 @@ class UserSeeder extends Seeder
 
         $this->downloadAndSaveProfileImage($user);
 
-        // Create 10 random users only in local environment
         if (app()->environment('local')) {
-            User::factory(10)->withGiftSuggestions(3)->create()->each(function ($user) {
+            User::factory(17)->withGiftSuggestions(3)->create()->each(function ($user) {
                 $this->downloadAndSaveProfileImage($user);
             });
         }

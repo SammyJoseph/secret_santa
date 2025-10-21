@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 class DrawController extends Controller
 {
     private $familyAssignments = [];
+    private $attempts = 0;
 
     public function index()
     {
@@ -48,7 +49,7 @@ class DrawController extends Controller
             DB::commit();
 
             // Prepare success message with family assignment count (without revealing names)
-            $message = 'Sorteo realizado exitosamente.';
+            $message = 'Sorteo realizado exitosamente tras ' . $this->attempts . ' intentos.';
             if (!empty($this->familyAssignments)) {
                 $count = count($this->familyAssignments);
                 $message .= " Sin embargo, se realizaron {$count} asignación(es) entre familiares.";
@@ -117,6 +118,9 @@ class DrawController extends Controller
             // Use a more efficient algorithm for fallback
             $assignments = $this->createFallbackAssignments($users);
             $familyAssignments = $this->getFamilyAssignmentsFromResults($assignments, $users);
+            $this->attempts = $maxAttempts + 1;
+        } else {
+            $this->attempts = $attempts;
         }
 
         if (empty($assignments)) {
