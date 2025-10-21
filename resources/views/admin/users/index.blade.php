@@ -29,6 +29,9 @@
                                     Grupo Familiar
                                 </th>
                                 <th scope="col" class="px-6 py-3">
+                                    Última Actividad
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Fecha de Registro
                                 </th>
                                 <th scope="col" class="px-6 py-3">
@@ -87,6 +90,9 @@
                                             @endforeach
                                         </div>
                                     @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ $user->updated_at->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-6 py-4">
                                     {{ $user->created_at->format('d/m/Y H:i') }}

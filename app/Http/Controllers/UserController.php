@@ -120,6 +120,7 @@ class UserController extends Controller
                 'suggestion' => $suggestion,
             ]);
         }
+        $user->touch(); // Update the updated_at timestamp of the user
 
         session()->forget('temp_profile_image');
 
