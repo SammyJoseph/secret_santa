@@ -19,19 +19,29 @@ class DrawController extends Controller
         $assignments = SecretSantaAssignment::with(['giver', 'receiver'])->get();
         $hasAssignments = $assignments->isNotEmpty();
         $users = User::all();
-        return view('admin.draw', compact('assignments', 'hasAssignments', 'users'));
+        $enableDrawTime = env('SECRET_SANTA_ENABLE_DRAW');
+        return view('admin.draw', compact('assignments', 'hasAssignments', 'users', 'enableDrawTime'));
     }
 
     public function start(Request $request)
     {
+        // Check if request wants JSON response
+        $wantsJson = $request->wantsJson() || $request->is('api/*') || $request->header('Accept') === 'application/json';
+
         // Check if assignments already exist
         if (SecretSantaAssignment::exists()) {
+            if ($wantsJson) {
+                return response()->json(['error' => 'El sorteo ya ha sido realizado.'], 400);
+            }
             return redirect()->route('admin.draw')->with('error', 'El sorteo ya ha sido realizado.');
         }
 
         $users = User::all();
 
         if ($users->count() < 2) {
+            if ($wantsJson) {
+                return response()->json(['error' => 'Se necesitan al menos 2 usuarios para realizar el sorteo.'], 400);
+            }
             return redirect()->route('admin.draw')->with('error', 'Se necesitan al menos 2 usuarios para realizar el sorteo.');
         }
 
@@ -49,17 +59,29 @@ class DrawController extends Controller
 
             DB::commit();
 
-            // Prepare success message with family assignment count (without revealing names)
-            $message = 'Sorteo realizado exitosamente tras ' . $this->attempts . ' intentos.';
-            if (!empty($this->familyAssignments)) {
-                $count = count($this->familyAssignments);
-                $message .= " Sin embargo, se realizaron {$count} asignación(es) entre familiares.";
+            // Log the number of attempts for successful draw
+            Log::info('Sorteo realizado exitosamente tras ' . $this->attempts . ' intento(s).');
+
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => true,
+                    'users' => $users->map(function($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'imagen' => $user->profile_photo_url
+                        ];
+                    })
+                ]);
             }
 
-            return redirect()->route('admin.draw')->with('success', $message);
+            return redirect()->route('admin.draw');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($wantsJson) {
+                return response()->json(['error' => 'Error al realizar el sorteo. Inténtalo de nuevo.'], 500);
+            }
             return redirect()->route('admin.draw')->with('error', 'Error al realizar el sorteo. Inténtalo de nuevo.');
         }
     }
