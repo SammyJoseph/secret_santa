@@ -1,138 +1,249 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Sorteo de Secret Santa') }}
-        </h2>
-    </x-slot>
+    <div class="bg-gradient min-h-screen">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 py-20">
+            <div class="container">
+                <h1>🎅 Secret Santa 🎄</h1>
+                <button class="btn-sortear" onclick="iniciarSorteo()">
+                    🎁 Iniciar Sorteo
+                </button>
+            </div>
 
-    <div class="py-12" x-data="{ showModal: false, confirmInput: '', error: false, isDrawing: false }">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="bg-white shadow-md rounded-md sm:rounded-lg">
-                <div class="p-6">
-                    @if(session('error'))
-                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                            {{ session('error') }}
-                        </div>
-                    @endif
+            <div class="shuffle-container" id="shuffleContainer"></div>
 
-                    @if(session('success'))
-                        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                            {{ session('success') }}
-                        </div>
-                    @endif
+            <div class="success-message" id="successMessage">
+                <div class="checkmark"></div>
+                <h2>¡Sorteo Completado!</h2>
+                <p>Los amigos secretos han sido asignados.<br>Cada participante puede ver su resultado en su perfil.</p>
+            </div>        
+        </div>
+    </div>
 
-                    @if(!$hasAssignments)
-                        <div class="text-center">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">
-                                ¡Es hora de realizar el sorteo!
-                            </h3>
-                            <p class="text-gray-600 mb-6">
-                                Una vez iniciado el sorteo, todos los participantes recibirán su amigo secreto asignado de manera aleatoria.
-                            </p>
-                            <button @click="showModal = true" :disabled="isDrawing" class="bg-red-500 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105 disabled:transform-none">
-                                <span x-show="!isDrawing" x-cloak>INICIAR SORTEO 🎄</span>
-                                <span x-show="isDrawing" x-cloak class="animate-pulse">SORTEANDO...</span>
-                            </button>
-                        </div>
+    @section('css')
+        <style>
+            .bg-gradient {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .container {
+                text-align: center;
+                position: relative;
+                z-index: 10;
+            }
 
-                        <!-- Confirmation Modal -->
-                        <div x-show="showModal" x-cloak x-transition class="fixed inset-0 z-50 overflow-y-auto" x-on:keydown.escape.window="showModal = false">
-                            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                                <div class="fixed inset-0 transition-opacity" x-on:click="showModal = false">
-                                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-                                </div>
-                                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                        <div class="sm:flex sm:items-start">
-                                            <div class="mx-auto shrink-0 flex items-center justify-center size-12 rounded-full bg-red-100 sm:mx-0 sm:size-10">
-                                                <svg class="size-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                                                </svg>
-                                            </div>
-                                            <div class="mt-3 text-center sm:mt-0 sm:ms-4 sm:text-start">
-                                                <h3 class="text-lg font-medium text-gray-900">
-                                                    Confirmar Inicio del Sorteo
-                                                </h3>
-                                                <div class="mt-4 text-sm text-gray-600">
-                                                    <p class="mb-4">Para confirmar, escribe <strong>"iniciar sorteo"</strong> en el campo a continuación:</p>
-                                                    <input x-model="confirmInput" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-                                                    <p x-show="error" class="mt-2 text-red-600 text-sm">El texto no coincide. Inténtalo de nuevo.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                                        <form action="{{ route('admin.draw.start') }}" method="POST" class="sm:inline-block">
-                                            @csrf
-                                            <button type="submit" @click="if (confirmInput.toLowerCase() !== 'iniciar sorteo') { error = true; $event.preventDefault(); } else { error = false; showModal = false; isDrawing = true; }" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                                                Iniciar Sorteo
-                                            </button>
-                                        </form>
-                                        {{-- <button @click="showModal = false; confirmInput = ''; error = false;" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                                            Cancelar
-                                        </button> --}}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <div class="text-center">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">
-                                Sorteo Completado
-                            </h3>
-                            <p class="text-gray-600 mb-6">
-                                El sorteo ha sido realizado exitosamente. Todos los participantes tienen asignado un amigo secreto.
-                            </p>
+            h1 {
+                color: white;
+                font-size: 3rem;
+                margin-bottom: 2rem;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            }
 
-                            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                                <h4 class="text-green-800 font-semibold mb-2">Verificación del Sorteo:</h4>
-                                <div class="max-w-md mx-auto">
-                                    <ul class="text-green-700 text-sm text-left">
-                                        <li>✅ Total de asignaciones: {{ $assignments->count() }}</li>
-                                        <li>✅ Cada participante tiene exactamente un amigo secreto asignado</li>
-                                        <li>✅ Nadie se asignó a sí mismo</li>
-                                        <li>✅ Todas las asignaciones son únicas</li>
-                                        @php
-                                            $familyAssignmentsCount = 0;
-                                            foreach($assignments as $assignment) {
-                                                if ($assignment->giver->isFamilyWith($assignment->receiver)) {
-                                                    $familyAssignmentsCount++;
-                                                }
-                                            }
-                                        @endphp
-                                        @if($familyAssignmentsCount > 0)
-                                            <li class="text-orange-600">⚠️ Asignaciones entre familiares: {{ $familyAssignmentsCount }}</li>
-                                        @else
-                                            <li>✅ No hay asignaciones entre familiares</li>
-                                        @endif
-                                    </ul>
-                                </div>
-                            </div>
+            .btn-sortear {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                border: none;
+                padding: 20px 60px;
+                font-size: 1.5rem;
+                font-weight: bold;
+                border-radius: 50px;
+                cursor: pointer;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
 
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3">Participante</th>
-                                            <th scope="col" class="px-6 py-3">Estado de Asignación</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($assignments as $assignment)
-                                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                                {{ $assignment->giver->name }}
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    ✅ Asignado
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @endif
+            .btn-sortear:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            }
+
+            .btn-sortear:active {
+                transform: translateY(-1px);
+            }
+
+            .btn-sortear:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            .shuffle-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                pointer-events: none;
+                z-index: 5;
+            }
+
+            .participant-image {
+                position: absolute;
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;                
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                object-fit: cover;
+                opacity: 0;
+            }
+
+            .participant-image.shuffling {
+                opacity: 1;
+                animation: shuffle 10s ease-in-out;
+            }
+
+            @keyframes shuffle {
+                0%, 100% {
+                    transform: translate(0, 0) rotate(0deg) scale(1);
+                }
+                10% {
+                    transform: translate(var(--x1), var(--y1)) rotate(180deg) scale(1.2);
+                }
+                20% {
+                    transform: translate(var(--x2), var(--y2)) rotate(360deg) scale(0.8);
+                }
+                30% {
+                    transform: translate(var(--x3), var(--y3)) rotate(540deg) scale(1.3);
+                }
+                40% {
+                    transform: translate(var(--x4), var(--y4)) rotate(720deg) scale(1.2);
+                }
+                50% {
+                    transform: translate(var(--x5), var(--y5)) rotate(900deg) scale(0.8);
+                }
+                60% {
+                    transform: translate(var(--x6), var(--y6)) rotate(1080deg) scale(1.3);
+                }
+                70% {
+                    transform: translate(var(--x7), var(--y7)) rotate(1260deg) scale(1.2);
+                }
+                80% {
+                    transform: translate(var(--x8), var(--y8)) rotate(1440deg) scale(0.8);
+                }
+                90% {
+                    transform: translate(var(--x9), var(--y9)) rotate(1620deg) scale(1.3);
+                }
+            }
+
+            .success-message {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0);
+                background: white;
+                padding: 50px 80px;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+                z-index: 20;
+                opacity: 0;
+                transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+
+            .success-message.show {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+
+            .success-message h2 {
+                color: #667eea;
+                font-size: 2.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .success-message p {
+                color: #666;
+                font-size: 1.2rem;
+                line-height: 1.6;
+            }
+
+            .checkmark {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 20px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .checkmark::after {
+                content: "✓";
+                color: white;
+                font-size: 3rem;
+                font-weight: bold;
+            }
+        </style>
+    @endsection
+    @section('js')
+        <script>
+            // Array de participantes con imágenes reales
+            const participantes = @json($users->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'imagen' => $user->profile_photo_url
+                ];
+            }));
+
+            function iniciarSorteo() {
+                const btn = document.querySelector('.btn-sortear');
+                const container = document.getElementById('shuffleContainer');
+                const successMsg = document.getElementById('successMessage');
+                
+                // Deshabilitar botón
+                btn.disabled = true;
+                btn.textContent = 'Sorteando...';
+                
+                // Limpiar contenedor
+                container.innerHTML = '';
+                
+                // Crear y animar imágenes
+                participantes.forEach((participante, index) => {
+                    const img = document.createElement('img');
+                    img.src = participante.imagen;
+                    img.className = 'participant-image';
+                    
+                    // Posición inicial (centro de la pantalla)
+                    const startX = window.innerWidth / 2 - 40;
+                    const startY = window.innerHeight / 2 - 40;
+                    img.style.left = `${startX}px`;
+                    img.style.top = `${startY}px`;
+                    
+                    // Generar posiciones aleatorias para la animación
+                    for (let i = 1; i <= 9; i++) {
+                        const x = (Math.random() - 0.5) * window.innerWidth * (0.7 + Math.random() * 0.2);
+                        const y = (Math.random() - 0.5) * window.innerHeight * (0.7 + Math.random() * 0.2);
+                        img.style.setProperty(`--x${i}`, `${x}px`);
+                        img.style.setProperty(`--y${i}`, `${y}px`);
+                    }
+                    
+                    container.appendChild(img);
+                    
+                    // Iniciar animación con delay escalonado
+                    setTimeout(() => {
+                        img.classList.add('shuffling');
+                    }, index * 50);
+                });
+                
+                // Después de 10.5 segundos, mostrar mensaje de éxito
+                setTimeout(() => {
+                    // Ocultar imágenes
+                    const images = container.querySelectorAll('.participant-image');
+                    images.forEach(img => {
+                        img.style.opacity = '0';
+                    });
+                    
+                    // Mostrar mensaje de éxito
+                    setTimeout(() => {
+                        successMsg.classList.add('show');
+                        
+                        // Habilitar botón nuevamente después de 3 segundos
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.textContent = '🎁 Iniciar Sorteo';
+                            successMsg.classList.remove('show');
+                        }, 3000);
+                    }, 500);
+                }, 10500);
+            }
+        </script>
+    @endsection
 </x-app-layout>

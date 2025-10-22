@@ -18,7 +18,8 @@ class DrawController extends Controller
     {
         $assignments = SecretSantaAssignment::with(['giver', 'receiver'])->get();
         $hasAssignments = $assignments->isNotEmpty();
-        return view('admin.draw', compact('assignments', 'hasAssignments'));
+        $users = User::all();
+        return view('admin.draw', compact('assignments', 'hasAssignments', 'users'));
     }
 
     public function start(Request $request)
