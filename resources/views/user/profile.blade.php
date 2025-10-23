@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
+    <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-4 md:py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
         style="background-image: url('{{ asset('assets/images/xbg.jpg') }}');">
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
         <div class="max-w-4xl w-full bg-white rounded-xl shadow-lg z-10 overflow-auto">
@@ -27,22 +27,22 @@
             </div>
             @endif
             <div class="p-10">            
-                <div class="grid gap-8 grid-cols-1 md:grid-cols-2">
+                <div class="grid gap-8 grid-cols-1 md:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">
                     <!-- Left Column: Secret Friend Placeholder -->
                     @if($isRevealed && $secretSanta)
                     <div class="flex flex-col items-center">
-                        <h3 class="font-semibold text-lg mb-6">Mi Amigo Secreto es <span class="text-[#146B3A]">{{ $secretSanta->name }}</span></h3>
-                        <div class="w-3/4 aspect-square bg-white rounded-full border-4 border-[#146B3A] overflow-hidden mb-3">
-                            <img class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->profile_photo_url }}" alt="Foto de {{ $secretSanta->name }}">
+                        <h3 class="font-semibold text-lg mb-6">Mi Amigo Secreto es <span class="text-[#F8B229]">{{ $secretSanta->name }}</span></h3>
+                        <div class="w-40 md:w-60 aspect-square bg-white rounded-full border-2 border-[#F8B229] overflow-hidden mb-3 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('secret-friend-preview').src">
+                            <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->profile_photo_url }}" alt="Foto de {{ $secretSanta->name }}">
                         </div>
                         {{-- <h4 class="text-xl font-bold text-center text-gray-800 mb-3">{{ $secretSanta->name }}</h4> --}}
                         <div class="mb-3 text-center">
-                            <p class="text-sm font-semibold text-gray-600 mb-2">A {{ $secretSanta->name }} le gustaría recibir:</p>
-                            <ul class="text-sm text-gray-500 space-y-1">
+                            <p class="text-sm font-semibold text-gray-600 mb-2">A {{ $secretSanta->name }} le gustaría recibir cualquiera de estas opciones:</p>
+                            <ol class="list-decimal list-inside text-sm text-gray-500 space-y-1">
                                 @foreach($secretSanta->giftSuggestions as $suggestion)
-                                    <li>• {{ $suggestion->suggestion }}</li>
+                                    <li>{{ $suggestion->suggestion }}</li>
                                 @endforeach
-                            </ul>
+                            </ol>
                         </div>
                         <div class="text-center text-[#146B3A] text-sm font-semibold">
                             ¡Mucha suerte en tu búsqueda del regalo perfecto! 🎁
@@ -63,7 +63,7 @@
                     @endif
 
                     <!-- Right Column: User Profile Edit -->
-                    <div class="flex flex-col" x-data="{ showModal: false, modalImage: '' }">
+                    <div class="flex flex-col">
                         <div class="flex flex-col sm:flex-row items-center">
                             <h2 class="font-semibold text-lg mr-auto">Editar mi Perfil</h2>
                             <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
@@ -79,7 +79,7 @@
                                                 src="{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}"
                                                 alt="Avatar Upload">
                                         </div>
-                                        <label class="cursor-pointer ">
+                                        <label class="cursor-pointer @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) pointer-events-none opacity-70 @endif">
                                             <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">Cambiar Foto</span>
                                             <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*">
                                         </label>
@@ -92,7 +92,7 @@
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs">
                                     <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
                                         <label class="font-semibold text-gray-600 py-2">Nombre</label>
-                                        <input placeholder="Nombre" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
+                                        <input placeholder="Nombre" class="appearance-none block w-full @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) bg-gray-50 @endif border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required" @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif
                                             type="text" name="name" id="name" value="{{ old('name', auth()->user()->name) }}">
                                         @error('name')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -101,7 +101,7 @@
                                     <div class="space-y-2 w-full text-xs">
                                         <label class="font-semibold text-gray-600 py-2">DNI</label>
                                         <input placeholder="87654321"
-                                            class="bg-gray-50 appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
+                                            class="bg-gray-50 appearance-none block w-full border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"
                                             disabled
                                             type="text"
                                             name="dni"
@@ -121,8 +121,8 @@
                                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                                 </span>
                                             </div>
-                                            <textarea name="gift_suggestions[{{ $index }}]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
+                                            <textarea name="gift_suggestions[{{ $index }}]" required @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif
+                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) bg-gray-50 @endif border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
                                                 placeholder="Me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.' . $index, $suggestion->suggestion) }}</textarea>
                                         </div>
                                         @error('gift_suggestions.' . $index)
@@ -133,7 +133,7 @@
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
                                     <button type="button" onclick="document.getElementById('logout-form').submit();" class="text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cerrar Sesión</button>
-                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800" @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif>Guardar Cambios</button>
+                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) opacity-70 @else hover:bg-green-800 @endif" @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif>Guardar Cambios</button>
                                 </div>
                             </div>
                         </form>

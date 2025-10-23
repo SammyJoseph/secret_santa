@@ -62,6 +62,13 @@ class DrawController extends Controller
             // Log the number of attempts for successful draw
             Log::info('Sorteo realizado exitosamente tras ' . $this->attempts . ' intento(s).');
 
+            // Log if family assignments were necessary
+            if (empty($this->familyAssignments)) {
+                Log::info('No fue necesario asignar participantes de un mismo grupo familiar.');
+            } else {
+                Log::info('Se tuvieron que asignar participantes de un mismo grupo familiar: ' . count($this->familyAssignments) . ' asignación(es).');
+            }
+
             if ($wantsJson) {
                 return response()->json([
                     'success' => true,
