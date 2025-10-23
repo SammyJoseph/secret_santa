@@ -2,7 +2,7 @@
     <div class="bg-gradient min-h-screen">
         <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
             <div class="container">
-                <h1>🎅 Amigo Secreto 🎄</h1>
+                <h1 class="text-white text-3xl md:text-5xl font-bold mb-6 md:mb-10">🎅 Amigo Secreto 🎄</h1>
                 @if($hasAssignments)
                     <div class="text-center">
                         <p class="text-white text-xl mb-8 drop-shadow-md">Todos los participantes han sido asignados correctamente.</p>
@@ -13,13 +13,13 @@
                         $enableDrawTime = \Carbon\Carbon::parse($enableDrawTime);
                         $isEnabled = $currentTime->gte($enableDrawTime);
                     @endphp
-                    <button class="btn-sortear {{ $isEnabled ? '' : 'disabled' }}" onclick="{{ $isEnabled ? 'iniciarSorteo()' : '' }}" {{ $isEnabled ? '' : 'disabled' }}>
+                    <button class="btn-sortear text-xl px-8 py-5 {{ $isEnabled ? '' : 'disabled' }}" onclick="{{ $isEnabled ? 'iniciarSorteo()' : '' }}" {{ $isEnabled ? '' : 'disabled' }}>
                         🎁 Iniciar Sorteo
                     </button>
                 @endif
 
                 <div class="text-center mt-12">
-                    <ul class="list-none p-0 grid grid-cols-6 gap-4 max-w-6xl mx-auto participant-grid">
+                    <ul class="list-none p-0 grid grid-cols-3 md:grid-cols-6 gap-4 max-w-6xl mx-auto participant-grid">
                         @foreach($users as $user)
                             <li class="flex flex-col items-center bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20 shadow-lg participant-card {{ $hasAssignments ? 'completed' : '' }}">
                                 <img src="{{ $user->profile_photo_url }}" class="w-16 h-16 rounded-full mb-2 object-cover border-2 border-white/30" alt="{{ $user->name }}">
@@ -50,9 +50,6 @@
             }
 
             h1 {
-                color: white;
-                font-size: 3rem;
-                margin-bottom: 2rem;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             }
 
@@ -60,8 +57,6 @@
                 background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
                 color: white;
                 border: none;
-                padding: 20px 60px;
-                font-size: 1.5rem;
                 font-weight: bold;
                 border-radius: 50px;
                 cursor: pointer;
