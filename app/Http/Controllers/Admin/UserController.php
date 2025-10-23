@@ -70,7 +70,7 @@ class UserController extends Controller
             $this->saveFunnyProfileImage($user, $request->file('funny_profile_photo_path'));
         }
 
-        return redirect()->route('admin.users.edit', $user)->with('success', 'Perfil actualizado con éxito.');
+        return redirect()->route('admin.users.index')->with('updated', $user->name );
     }
 
     /**
