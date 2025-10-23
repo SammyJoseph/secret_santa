@@ -33,7 +33,7 @@
                     <div class="flex flex-col items-center">
                         <h3 class="font-semibold text-lg mb-6">Mi Amigo Secreto es <span class="text-[#F8B229]">{{ $secretSanta->name }}</span></h3>
                         <div class="w-40 md:w-60 aspect-square bg-white rounded-full border-2 border-[#F8B229] overflow-hidden mb-3 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('secret-friend-preview').src">
-                            <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->profile_photo_url }}" alt="Foto de {{ $secretSanta->name }}">
+                            <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->funny_profile_photo_path ? asset('storage/' . $secretSanta->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto de {{ $secretSanta->name }}">
                         </div>
                         {{-- <h4 class="text-xl font-bold text-center text-gray-800 mb-3">{{ $secretSanta->name }}</h4> --}}
                         <div class="mb-3 text-center">

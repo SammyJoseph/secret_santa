@@ -20,6 +20,9 @@
                                 <th scope="col" class="px-6 py-3">
                                     Nombre
                                 </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Avatar
+                                </th>
                                 @if(config('app.env') === 'local')
                                 <th scope="col" class="px-6 py-3">
                                     Amigo Secreto
@@ -33,9 +36,6 @@
                                 </th>
                                 <th scope="col" class="px-6 py-3">
                                     Fecha de Registro
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Acción
                                 </th>
                             </tr>
                         </thead>
@@ -52,10 +52,16 @@
                                         <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
                                     </div>
                                     <div class="ps-3">
-                                        <div class="text-base font-semibold">{{ $user->name }}</div>
+                                        <div class="text-base font-semibold"><a href="{{ route('admin.users.edit', $user) }}">{{ $user->name }}</a></div>
                                         <div class="font-normal text-gray-500">{{ $user->dni }}</div>
                                     </div>
                                 </th>
+                                <td class="px-6 py-4">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('funny-preview-{{ $user->id }}').src">
+                                        <img id="funny-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->funny_profile_photo_path ? Storage::url($user->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto divertida de {{ $user->name }}">
+                                    </div>
+                                </td>
+
                                 @if(config('app.env') === 'local')
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($user->secretSantaAssignment)
@@ -97,13 +103,10 @@
                                 <td class="px-6 py-4">
                                     {{ $user->created_at->format('d/m/Y H:i') }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="font-medium text-blue-600 hover:underline">Editar</a>
-                                </td>
                             </tr>
                             @empty
                             <tr class="bg-white border-b border-gray-200">
-                                <td colspan="{{ config('app.env') === 'local' ? 7 : 6 }}" class="px-6 py-4 text-center text-gray-500">
+                                <td colspan="{{ config('app.env') === 'local' ? 8 : 7 }}" class="px-6 py-4 text-center text-gray-500">
                                     No hay usuarios registrados aún.
                                 </td>
                             </tr>

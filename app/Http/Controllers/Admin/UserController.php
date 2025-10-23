@@ -63,11 +63,11 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'funny_profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
         ]);
 
-        if ($request->hasFile('profile_photo_path')) {
-            $this->saveProfileImage($user, $request->file('profile_photo_path'));
+        if ($request->hasFile('funny_profile_photo_path')) {
+            $this->saveFunnyProfileImage($user, $request->file('funny_profile_photo_path'));
         }
 
         return redirect()->route('admin.users.edit', $user)->with('success', 'Perfil actualizado con éxito.');
@@ -102,14 +102,15 @@ class UserController extends Controller
         ]);
     }
 
+
     /**
-     * Save the profile image for the user.
+     * Save the funny profile image for the user.
      */
-    private function saveProfileImage(User $user, $imageFile): void
+    private function saveFunnyProfileImage(User $user, $imageFile): void
     {
         try {
             // Generate a unique filename
-            $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . $imageFile->getClientOriginalExtension();
+            $filename = 'funny-profile-photos/' . $user->id . '_' . Str::random(10) . '.' . $imageFile->getClientOriginalExtension();
 
             // Resize image to 600px width maintaining aspect ratio
             $manager = new ImageManager(new Driver());
@@ -124,10 +125,10 @@ class UserController extends Controller
                 Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
             }
 
-            // Update user's profile_photo_path
-            $user->update(['profile_photo_path' => $filename]);
+            // Update user's funny_profile_photo_path
+            $user->update(['funny_profile_photo_path' => $filename]);
         } catch (\Exception $e) {
-            // If upload fails, leave profile_photo_path as null
+            // If upload fails, leave funny_profile_photo_path as null
             // You can log the error if needed
         }
     }
