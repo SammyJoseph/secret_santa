@@ -20,9 +20,6 @@
                                 <th scope="col" class="px-6 py-3">
                                     Nombre
                                 </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Avatar
-                                </th>
                                 @if(config('app.env') === 'local')
                                 <th scope="col" class="px-6 py-3">
                                     Amigo Secreto
@@ -48,19 +45,19 @@
                                 </td>
                                 @endif
                                 <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview-{{ $user->id }}').src">
-                                        <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
+                                    <div class="flex space-x-2">
+                                        <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview-{{ $user->id }}').src">
+                                            <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
+                                        </div>
+                                        <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('funny-preview-{{ $user->id }}').src">
+                                            <img id="funny-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->funny_profile_photo_path ? Storage::url($user->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto divertida de {{ $user->name }}">
+                                        </div>
                                     </div>
                                     <div class="ps-3">
                                         <div class="text-base font-semibold"><a href="{{ route('admin.users.edit', $user) }}">{{ $user->name }}</a></div>
                                         <div class="font-normal text-gray-500">{{ $user->dni }}</div>
                                     </div>
                                 </th>
-                                <td class="px-6 py-4">
-                                    <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('funny-preview-{{ $user->id }}').src">
-                                        <img id="funny-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->funny_profile_photo_path ? Storage::url($user->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto divertida de {{ $user->name }}">
-                                    </div>
-                                </td>
 
                                 @if(config('app.env') === 'local')
                                 <td class="px-6 py-4 whitespace-nowrap">

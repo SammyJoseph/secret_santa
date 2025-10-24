@@ -31,7 +31,7 @@
                     <!-- Left Column: Secret Friend Placeholder -->
                     @if($isRevealed && $secretSanta)
                     <div class="flex flex-col items-center">
-                        <h3 class="font-semibold text-lg mb-6">Mi Amigo Secreto es <span class="text-[#F8B229]">{{ $secretSanta->name }}</span></h3>
+                        <h3 class="font-semibold text-lg text-center mb-6">Mi Amigo Secreto es <span class="text-[#F8B229]">{{ $secretSanta->name }}</span></h3>
                         <div class="w-40 md:w-60 aspect-square bg-white rounded-full border-2 border-[#F8B229] overflow-hidden mb-3 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('secret-friend-preview').src">
                             <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->funny_profile_photo_path ? asset('storage/' . $secretSanta->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto de {{ $secretSanta->name }}">
                         </div>
@@ -64,9 +64,13 @@
 
                     <!-- Right Column: User Profile Edit -->
                     <div class="flex flex-col">
-                        <div class="flex flex-col sm:flex-row items-center">
-                            <h2 class="font-semibold text-lg mr-auto">Editar mi Perfil</h2>
-                            <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
+                        <div class="flex items-center justify-between mb-3 md:mb-0">
+                            <h2 class="font-semibold text-lg">Editar mi Perfil</h2>
+                            @if($user->is_admin)
+                            <a href="{{ route('admin.users.index') }}" title="Admin">
+                                <svg class="w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M400-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM80-160v-112q0-33 17-62t47-44q51-26 115-44t141-18h14q6 0 12 2-8 18-13.5 37.5T404-360h-4q-71 0-127.5 18T180-306q-9 5-14.5 14t-5.5 20v32h252q6 21 16 41.5t22 38.5H80Zm560 40-12-60q-12-5-22.5-10.5T584-204l-58 18-40-68 46-40q-2-14-2-26t2-26l-46-40 40-68 58 18q11-8 21.5-13.5T628-460l12-60h80l12 60q12 5 22.5 11t21.5 15l58-20 40 70-46 40q2 12 2 25t-2 25l46 40-40 68-58-18q-11 8-21.5 13.5T732-180l-12 60h-80Zm40-120q33 0 56.5-23.5T760-320q0-33-23.5-56.5T680-400q-33 0-56.5 23.5T600-320q0 33 23.5 56.5T680-240ZM400-560q33 0 56.5-23.5T480-640q0-33-23.5-56.5T400-720q-33 0-56.5 23.5T320-640q0 33 23.5 56.5T400-560Zm0-80Zm12 400Z"/></svg>
+                            </a>
+                            @endif
                         </div>
                         <form action="{{ route('user.update', $user) }}" method="POST" enctype="multipart/form-data">
                             @csrf
@@ -76,7 +80,7 @@
                                     <div class="flex items-center pb-3 md:py-6">
                                         <div class="w-12 h-12 mr-4 flex-none rounded-full border overflow-hidden cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview').src">
                                             <img id="profile-preview" class="w-12 h-12 object-cover rounded-full"
-                                                src="{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}"
+                                                src="{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('assets/images/profile.jpg') }}"
                                                 alt="Avatar Upload">
                                         </div>
                                         <label class="cursor-pointer @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) pointer-events-none opacity-70 @endif">
@@ -93,7 +97,7 @@
                                     <div class="space-y-2 w-full text-xs mb-3 md:mb-0">
                                         <label class="font-semibold text-gray-600 py-2">Nombre</label>
                                         <input placeholder="Nombre" class="appearance-none block w-full @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) bg-gray-50 @endif border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required" @if(now()->gt(\Carbon\Carbon::parse($revealDateJs))) disabled @endif
-                                            type="text" name="name" id="name" value="{{ old('name', auth()->user()->name) }}">
+                                            type="text" name="name" id="name" value="{{ old('name', $user->name) }}">
                                         @error('name')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
@@ -106,12 +110,12 @@
                                             type="text"
                                             name="dni"
                                             id="dni"
-                                            value="{{ auth()->user()->dni }}"
+                                            value="{{ $user->dni }}"
                                             />
                                     </div>
                                 </div>
                                 <div class="mt-6">
-                                    @foreach(auth()->user()->giftSuggestions ?? [] as $index => $suggestion)
+                                    @foreach($user->giftSuggestions ?? [] as $index => $suggestion)
                                     <div class="space-y-2 w-full text-xs mb-3">
                                         <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo {{ $index + 1 }}</label>
                                         <div class="flex flex-wrap items-stretch w-full mb-4 relative">
@@ -232,11 +236,11 @@
                 .catch(error => {
                     console.error('Upload failed:', error);
                     // Reset to default if upload fails
-                    profilePreview.src = '{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}';
+                    profilePreview.src = '{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('assets/images/profile.jpg') }}';
                 });
             } else {
                 // If no file selected, reset to default
-                profilePreview.src = '{{ auth()->user()->profile_photo_path ? asset('storage/' . auth()->user()->profile_photo_path) : asset('assets/images/profile.jpg') }}';
+                profilePreview.src = '{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('assets/images/profile.jpg') }}';
                 tempImageFilename.value = '';
             }
         });
