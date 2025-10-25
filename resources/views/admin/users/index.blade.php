@@ -55,7 +55,7 @@
                                     </div>
                                     <div class="ps-3">
                                         <div class="text-base font-semibold"><a href="{{ route('admin.users.edit', $user) }}">{{ $user->name }}</a></div>
-                                        <div class="font-normal text-gray-500">{{ $user->dni }}</div>
+                                        <div class="font-normal text-gray-500">{{ $user->dni }} @if($user->nickname) ({{ $user->nickname }}) @endif</div>
                                     </div>
                                 </th>
 

@@ -24,6 +24,13 @@
 
                         <h1 class="mt-3 mb-1 text-center text-xl font-bold leading-8 text-gray-900">{{ $user->name }}</h1>
                         <h3 class="font-lg text-semibold text-center leading-6 text-gray-600">DNI: {{ $user->dni }}</h3>
+                        <div class="mt-4">
+                            <label for="nickname" class="block text-sm font-medium text-gray-700">Nickname</label>
+                            <input type="text" id="nickname" name="nickname" value="{{ old('nickname', $user->nickname) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#F8B229] focus:border-[#F8B229]">
+                            @error('nickname')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                         <ul class="mt-3 divide-y rounded bg-gray-100 py-2 px-3 text-gray-600 shadow-sm hover:text-gray-700 hover:shadow">
                             @foreach($user->giftSuggestions as $suggestion)
                                 <li class="flex items-center py-3 text-sm">{{ $suggestion->suggestion }}</li>

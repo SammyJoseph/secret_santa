@@ -36,6 +36,7 @@ class User extends Authenticatable
         'family_id',
         'reset_token',
         'reset_expires_at',
+        'nickname',
     ];
 
     /**

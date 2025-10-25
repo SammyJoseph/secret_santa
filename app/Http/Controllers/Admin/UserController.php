@@ -64,11 +64,16 @@ class UserController extends Controller
     {
         $request->validate([
             'funny_profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'nickname' => 'nullable|string|max:255',
         ]);
 
         if ($request->hasFile('funny_profile_photo_path')) {
             $this->saveFunnyProfileImage($user, $request->file('funny_profile_photo_path'));
         }
+
+        $user->update([
+            'nickname' => $request->input('nickname'),
+        ]);
 
         return redirect()->route('admin.users.index')->with('updated', $user->name );
     }
