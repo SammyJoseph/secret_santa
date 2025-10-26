@@ -12,6 +12,7 @@ class GiftSuggestion extends Model
     protected $fillable = [
         'user_id',
         'suggestion',
+        'reference_image_path',
     ];
 
     public function user()

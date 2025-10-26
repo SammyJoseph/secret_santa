@@ -45,7 +45,7 @@
                                 </div>
 
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
-                                    <a href="{{ route('user.register.view') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Registrarse</a>
+                                    {{-- <a href="{{ route('user.register.view') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Registrarse</a> --}}
                                     <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Iniciar Sesión</button>
                                 </div>
                             </div>

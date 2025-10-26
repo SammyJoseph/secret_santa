@@ -114,15 +114,51 @@ class UserController extends Controller
         // Delete existing suggestions and create new ones
         $user->giftSuggestions()->delete();
 
-        foreach ($validated['gift_suggestions'] as $suggestion) {
+        $tempGiftImages = session('temp_gift_images', []);
+
+        foreach ($validated['gift_suggestions'] as $index => $suggestion) {
+            $referenceImagePath = null;
+
+            // Check if there's a temp image for this suggestion
+            if (isset($tempGiftImages[$index])) {
+                $tempFilename = $tempGiftImages[$index];
+                $tempPath = storage_path('app/public/temp/' . $tempFilename);
+
+                if (file_exists($tempPath)) {
+                    // Move temp image to permanent storage with resizing
+                    $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
+
+                    // Resize image to 600px width maintaining aspect ratio
+                    $manager = new ImageManager(new Driver());
+                    $image = $manager->read($tempPath);
+                    $image->scale(width: 600);
+
+                    // Save resized image to permanent storage
+                    $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
+                    if ($extension === 'png') {
+                        Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+                    } else {
+                        Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+                    }
+
+                    $referenceImagePath = $filename;
+                    // Clean up temp file
+                    unlink($tempPath);
+                }
+            }
+
             GiftSuggestion::create([
                 'user_id' => $user->id,
                 'suggestion' => $suggestion,
+                'reference_image_path' => $referenceImagePath,
             ]);
         }
+
+        session()->forget('temp_gift_images');
         $user->touch(); // Update the updated_at timestamp of the user
 
         session()->forget('temp_profile_image');
+        session()->forget('temp_gift_images');
 
         return redirect()->route('user.profile')->with('success', 'Tu perfil se actualizó con éxito.');
     }
@@ -130,10 +166,12 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        
-        $revealDate = new \DateTime(env('SECRET_SANTA_REVEAL_DATE'));
+
+        $revealDate = new \DateTime(config('services.secret_santa.reveal_date'));
+        $profileEditEndDate = new \DateTime(config('services.secret_santa.profile_edit_end_date'));
         $now = new \DateTime();
         $isRevealed = $now >= $revealDate;
+        $canEditProfile = $now <= $profileEditEndDate;
 
         $secretSanta = null;
         if ($isRevealed) {
@@ -143,10 +181,11 @@ class UserController extends Controller
             }
         }
 
-        // Format date for JavaScript
+        // Format dates for JavaScript
         $revealDateJs = $revealDate->format('Y-m-d\TH:i:s');
+        $profileEditEndDateJs = $profileEditEndDate->format('Y-m-d\TH:i:s');
 
-        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs'));
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'canEditProfile', 'profileEditEndDateJs'));
     }
 
     public function tempUpload(Request $request)
@@ -172,6 +211,41 @@ class UserController extends Controller
     }
 
     public function getTempImage($filename)
+    {
+        $path = storage_path('app/public/temp/' . $filename);
+
+        if (file_exists($path)) {
+            return response()->file($path);
+        }
+
+        abort(404);
+    }
+
+    public function tempUploadGift(Request $request, $index)
+    {
+        $request->validate([
+            'reference_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+        ]);
+
+        if ($request->hasFile('reference_image_path')) {
+            $file = $request->file('reference_image_path');
+            $filename = 'temp_gift_' . $index . '_' . session()->getId() . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+            // Save to storage/app/public/temp
+            Storage::disk('public')->put('temp/' . $filename, file_get_contents($file->getRealPath()));
+
+            // Store temp filename in session with index
+            $tempGiftImages = session('temp_gift_images', []);
+            $tempGiftImages[$index] = $filename;
+            session(['temp_gift_images' => $tempGiftImages]);
+
+            return response()->json(['filename' => $filename]);
+        }
+
+        return response()->json(['error' => 'No file uploaded'], 400);
+    }
+
+    public function getTempImageGift($filename)
     {
         $path = storage_path('app/public/temp/' . $filename);
 

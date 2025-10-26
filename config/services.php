@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'secret_santa' => [
+        'enable_draw' => env('SECRET_SANTA_ENABLE_DRAW'),
+        'reveal_date' => env('SECRET_SANTA_REVEAL_DATE'),
+        'profile_edit_end_date' => env('SECRET_SANTA_PROFILE_EDIT_END_DATE'),
+    ],
+
 ];

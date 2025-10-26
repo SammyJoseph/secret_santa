@@ -31,11 +31,18 @@
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <ul class="mt-3 divide-y rounded bg-gray-100 py-2 px-3 text-gray-600 shadow-sm hover:text-gray-700 hover:shadow">
+                        <div class="mt-3 space-y-3">
                             @foreach($user->giftSuggestions as $suggestion)
-                                <li class="flex items-center py-3 text-sm">{{ $suggestion->suggestion }}</li>
+                                <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-3">
+                                    <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer" @click="showModal = true; modalImage = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}'">
+                                        <img class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-700">{{ $suggestion->suggestion }}</p>
+                                    </div>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                         <div class="text-center mt-6">
                             <button type="submit" class="bg-[#146B3A] text-white px-4 py-2 rounded-full hover:bg-green-800">Guardar Cambios</button>
                             <div class="mt-3">

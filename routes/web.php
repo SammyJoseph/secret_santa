@@ -15,17 +15,19 @@ Route::get('/', function () {
 
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-Route::get('/registro', function () {
+/* Route::get('/registro', function () {
     if (Auth::check()) {
         return redirect()->route('home');
     }
     return view('user.register');
-})->name('user.register.view');
+})->name('user.register.view'); */
 
-Route::post('/registro', [UserController::class, 'store'])->name('user.register');
+// Route::post('/registro', [UserController::class, 'store'])->name('user.register');
 Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.update');
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');
 Route::get('/temp-image/{filename}', [UserController::class, 'getTempImage'])->name('user.temp-image');
+Route::post('/temp-upload-gift/{index}', [UserController::class, 'tempUploadGift'])->name('user.temp-upload-gift');
+Route::get('/temp-image-gift/{filename}', [UserController::class, 'getTempImageGift'])->name('user.temp-image-gift');
 
 // Password reset routes
 Route::get('/password/reset/{token}', [App\Http\Controllers\PasswordResetController::class, 'showResetForm'])->name('password.reset.token');

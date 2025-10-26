@@ -20,4 +20,16 @@ export default {
     },
 
     plugins: [forms, typography],
+
+    safelist: [
+        'text-[#BB2528]',
+        'text-[#244372]',
+        'text-[#414f4f]',        
+        'bg-[#BB2528]',
+        'bg-[#244372]',
+        'bg-[#414f4f]',
+        'border-[#BB2528]',
+        'border-[#244372]',
+        'border-[#414f4f]',
+    ],
 };
