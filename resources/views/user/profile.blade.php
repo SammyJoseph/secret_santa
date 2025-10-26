@@ -2,7 +2,7 @@
     <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 bg-gray-500 bg-no-repeat bg-cover relative items-center"
         style="background-image: url('{{ asset('assets/images/xbg.jpg') }}');">
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
-        <div class="max-w-5xl w-full rounded-xl shadow-lg z-10 overflow-auto">
+        <div class="max-w-5xl w-full shadow-lg z-10 overflow-auto">
             @if (session('success'))
             <div x-data="{ show: true }" x-show="show" x-transition
                 class="flex items-center p-4 border-t-4 border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600"

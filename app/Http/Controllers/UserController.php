@@ -17,6 +17,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Encoders\WebPEncoder;
 
 class UserController extends Controller
 {
@@ -49,6 +50,8 @@ class UserController extends Controller
                 $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
                 if ($extension === 'png') {
                     Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+                } elseif ($extension === 'webp') {
+                    Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
                 } else {
                     Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
                 }
@@ -100,6 +103,8 @@ class UserController extends Controller
                 $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
                 if ($extension === 'png') {
                     Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+                } elseif ($extension === 'webp') {
+                    Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
                 } else {
                     Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
                 }
@@ -111,42 +116,53 @@ class UserController extends Controller
         }
 
         // Handle gift suggestions update
+        // Collect old reference images before deleting
+        $oldImages = [];
+        foreach ($user->giftSuggestions as $index => $suggestion) {
+            $oldImages[$index] = $suggestion->reference_image_path;
+        }
+        
         // Delete existing suggestions and create new ones
         $user->giftSuggestions()->delete();
-
+        
         $tempGiftImages = session('temp_gift_images', []);
-
+        
         foreach ($validated['gift_suggestions'] as $index => $suggestion) {
             $referenceImagePath = null;
-
+        
             // Check if there's a temp image for this suggestion
             if (isset($tempGiftImages[$index])) {
                 $tempFilename = $tempGiftImages[$index];
                 $tempPath = storage_path('app/public/temp/' . $tempFilename);
-
+        
                 if (file_exists($tempPath)) {
                     // Move temp image to permanent storage with resizing
                     $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
-
+        
                     // Resize image to 600px width maintaining aspect ratio
                     $manager = new ImageManager(new Driver());
                     $image = $manager->read($tempPath);
                     $image->scale(width: 600);
-
+        
                     // Save resized image to permanent storage
                     $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
                     if ($extension === 'png') {
                         Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+                    } elseif ($extension === 'webp') {
+                        Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
                     } else {
                         Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
                     }
-
+        
                     $referenceImagePath = $filename;
                     // Clean up temp file
                     unlink($tempPath);
                 }
+            } elseif (isset($oldImages[$index])) {
+                // Preserve existing image if no new temp image
+                $referenceImagePath = $oldImages[$index];
             }
-
+        
             GiftSuggestion::create([
                 'user_id' => $user->id,
                 'suggestion' => $suggestion,
@@ -191,7 +207,7 @@ class UserController extends Controller
     public function tempUpload(Request $request)
     {
         $request->validate([
-            'profile_photo_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'profile_photo_path' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         if ($request->hasFile('profile_photo_path')) {
@@ -224,7 +240,7 @@ class UserController extends Controller
     public function tempUploadGift(Request $request, $index)
     {
         $request->validate([
-            'reference_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'reference_image_path' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         if ($request->hasFile('reference_image_path')) {
@@ -274,6 +290,8 @@ class UserController extends Controller
              $extension = strtolower($imageFile->getClientOriginalExtension());
              if ($extension === 'png') {
                  Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
+             } elseif ($extension === 'webp') {
+                 Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
              } else {
                  Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
              }
