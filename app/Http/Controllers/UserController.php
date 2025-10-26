@@ -39,22 +39,15 @@ class UserController extends Controller
             $tempFilename = $request->input('temp_image_filename');
             $tempPath = storage_path('app/public/temp/' . $tempFilename);
             if (file_exists($tempPath)) {
-                $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
+                $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
 
                 // Resize temp image to 600px width maintaining aspect ratio
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($tempPath);
                 $image->scale(width: 600);
 
-                // Save resized image to permanent storage
-                $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
-                if ($extension === 'png') {
-                    Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
-                } elseif ($extension === 'webp') {
-                    Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
-                } else {
-                    Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-                }
+                // Always save as JPEG to avoid WebP encoder issues
+                Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
 
                 $user->update(['profile_photo_path' => $filename]);
                 // Clean up temp file
@@ -92,22 +85,15 @@ class UserController extends Controller
             $tempFilename = $request->input('temp_image_filename');
             $tempPath = storage_path('app/public/temp/' . $tempFilename);
             if (file_exists($tempPath)) {
-                $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
+                $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
 
                 // Resize temp image to 600px width maintaining aspect ratio
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($tempPath);
                 $image->scale(width: 600);
 
-                // Save resized image to permanent storage
-                $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
-                if ($extension === 'png') {
-                    Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
-                } elseif ($extension === 'webp') {
-                    Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
-                } else {
-                    Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-                }
+                // Always save as JPEG to avoid WebP encoder issues
+                Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
 
                 $user->update(['profile_photo_path' => $filename]);
                 // Clean up temp file
@@ -137,23 +123,16 @@ class UserController extends Controller
         
                 if (file_exists($tempPath)) {
                     // Move temp image to permanent storage with resizing
-                    $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.' . pathinfo($tempFilename, PATHINFO_EXTENSION);
-        
+                    $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.jpg';
+
                     // Resize image to 600px width maintaining aspect ratio
                     $manager = new ImageManager(new Driver());
                     $image = $manager->read($tempPath);
                     $image->scale(width: 600);
-        
-                    // Save resized image to permanent storage
-                    $extension = strtolower(pathinfo($tempFilename, PATHINFO_EXTENSION));
-                    if ($extension === 'png') {
-                        Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
-                    } elseif ($extension === 'webp') {
-                        Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
-                    } else {
-                        Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-                    }
-        
+
+                    // Always save as JPEG to avoid WebP encoder issues
+                    Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+
                     $referenceImagePath = $filename;
                     // Clean up temp file
                     unlink($tempPath);
@@ -278,23 +257,16 @@ class UserController extends Controller
      private function saveProfileImage(User $user, $imageFile): void
      {
          try {
-             // Generate a unique filename
-             $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.' . $imageFile->getClientOriginalExtension();
+             // Generate a unique filename (always .jpg)
+             $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
 
              // Resize image to 600px width maintaining aspect ratio
              $manager = new ImageManager(new Driver());
              $image = $manager->read($imageFile->getRealPath());
              $image->scale(width: 600);
 
-             // Save to storage/app/public
-             $extension = strtolower($imageFile->getClientOriginalExtension());
-             if ($extension === 'png') {
-                 Storage::disk('public')->put($filename, $image->encode(new PngEncoder()));
-             } elseif ($extension === 'webp') {
-                 Storage::disk('public')->put($filename, $image->encode(new WebPEncoder(quality: 90)));
-             } else {
-                 Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-             }
+             // Always save as JPEG to avoid WebP encoder issues
+             Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
 
              // Update user's profile_photo_path
              $user->update(['profile_photo_path' => $filename]);
