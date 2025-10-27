@@ -28,7 +28,7 @@ class StoreUserRequest extends FormRequest
             'password' => 'required|string|min:4|confirmed',
             'gift_suggestions' => 'required|array|min:1|max:3',
             'gift_suggestions.*' => 'required|string|min:3|max:255',
-            'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
+            'profile_photo_path' => 'nullable|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
         ];
     }
 }

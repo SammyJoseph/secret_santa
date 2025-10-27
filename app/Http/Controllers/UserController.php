@@ -186,7 +186,7 @@ class UserController extends Controller
     public function tempUpload(Request $request)
     {
         $request->validate([
-            'profile_photo_path' => 'required|image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
+            'profile_photo_path' => 'required|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
         ]);
 
         if ($request->hasFile('profile_photo_path')) {
@@ -219,7 +219,7 @@ class UserController extends Controller
     public function tempUploadGift(Request $request, $index)
     {
         $request->validate([
-            'reference_image_path' => 'required|image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
+            'reference_image_path' => 'required|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
         ]);
 
         if ($request->hasFile('reference_image_path')) {
