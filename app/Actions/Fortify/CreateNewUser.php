@@ -26,10 +26,14 @@ class CreateNewUser implements CreatesNewUsers
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
 
+        // Obtener family_group_id de la sesión (establecido por CaptureFamilyGroup middleware)
+        $familyGroupId = session('registration_family_group_id', 1);
+
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
+            'family_group_id' => $familyGroupId,
         ]);
     }
 }

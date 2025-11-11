@@ -4,7 +4,13 @@
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
         <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
             <div class="grid  gap-8 grid-cols-1">
-                <div class="flex flex-col ">
+                <div class="flex flex-col">
+                    @session('error')
+                        <div class="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
+                            <p class="font-bold">⚠️ Atención</p>
+                            <p class="text-sm">{{ $value }}</p>
+                        </div>
+                    @endsession
                     <img src="{{ asset('assets/images/tree.gif') }}" class="w-12 mb-2" alt="christmas tree">
                     <div class="flex flex-col sm:flex-row items-center">
                         <h2 class="font-semibold text-lg mr-auto">Iniciar Sesión</h2>
@@ -17,7 +23,7 @@
                             <div class="mb-4 font-medium text-sm text-green-600">
                                 {{ $value }}
                             </div>
-                        @endsession
+                        @endsession                        
 
                         <form method="POST" action="{{ route('login') }}">
                             @csrf

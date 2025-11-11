@@ -149,7 +149,7 @@
                                                 <img id="gift-preview-{{ $index }}" class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
                                             </div>
                                             <label class="cursor-pointer @if(!$canEditProfile) pointer-events-none opacity-70 @endif">
-                                                <span class="focus:outline-none text-white text-xs py-1 px-3 rounded-full bg-[{{ $themeColor }}] hover:shadow-lg">Subir imagen de ejemplo</span>
+                                                <span class="focus:outline-none text-white text-xs py-1 px-3 rounded-full bg-[{{ $themeColor }}] hover:shadow-lg">Subir imagen referencial</span>
                                                 <input type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*">
                                             </label>
                                             <input type="hidden" name="temp_gift_image_{{ $index }}" id="temp-gift-image-{{ $index }}" value="{{ session('temp_gift_images')[$index] ?? '' }}">

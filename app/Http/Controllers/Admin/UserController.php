@@ -18,10 +18,21 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('secretSantaAssignment.receiver')->orderBy('updated_at', 'desc')->get();
-        return view('admin.users.index', compact('users'));
+        $query = User::with(['secretSantaAssignment.receiver', 'familyGroup']);
+        
+        // Filtrar por familia si se especifica
+        if ($request->has('family_group_id') && $request->family_group_id != '') {
+            $query->where('family_group_id', $request->family_group_id);
+        }
+        
+        $users = $query->orderBy('updated_at', 'desc')->get();
+        
+        // Obtener todas las familias para el filtro
+        $familyGroups = \App\Models\FamilyGroup::withCount('users')->get();
+        
+        return view('admin.users.index', compact('users', 'familyGroups'));
     }
 
     /**

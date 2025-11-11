@@ -15,14 +15,15 @@ Route::get('/', function () {
 
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-/* Route::get('/registro', function () {
+// Rutas de registro customizadas con middleware
+Route::get('/registro', function () {
     if (Auth::check()) {
-        return redirect()->route('home');
+        return redirect()->route('user.profile');
     }
     return view('user.register');
-})->name('user.register.view'); */
+})->middleware('capture.family.group')->name('user.register.view');
 
-// Route::post('/registro', [UserController::class, 'store'])->name('user.register');
+Route::post('/registro', [UserController::class, 'store'])->name('user.register');
 Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.update');
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');
 Route::get('/temp-image/{filename}', [UserController::class, 'getTempImage'])->name('user.temp-image');
@@ -46,6 +47,10 @@ Route::middleware([
     Route::post('admin/users/{user}/generate-reset-link', [AdminUserController::class, 'generateResetLink'])->middleware('is_admin')->name('admin.users.generate-reset-link');
     Route::post('admin/users/{user}/assign-family', [App\Http\Controllers\Admin\FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
     Route::delete('admin/users/{user}/remove-family', [App\Http\Controllers\Admin\FamilyController::class, 'remove'])->middleware('is_admin')->name('admin.users.remove-family');
+    
+    // Rutas de gestión de family groups
+    Route::resource('admin/family-groups', App\Http\Controllers\Admin\FamilyGroupController::class)->middleware('is_admin')->names('admin.family-groups');
+    
     Route::get('admin/draw', [App\Http\Controllers\Admin\DrawController::class, 'index'])->middleware('is_admin')->name('admin.draw');
     Route::post('admin/draw/start', [App\Http\Controllers\Admin\DrawController::class, 'start'])->middleware('is_admin')->name('admin.draw.start');
     Route::get('/perfil', [UserController::class, 'profile'])->name('user.profile');

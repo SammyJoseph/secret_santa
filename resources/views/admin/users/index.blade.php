@@ -8,6 +8,30 @@
     <div class="py-1 sm:py-12" x-data="{ showModal: false, modalImage: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="p-6 bg-white shadow-md sm:rounded-lg">
+                <!-- Filtro por Familia -->
+                <div class="mb-6 flex items-center gap-4">
+                    <form method="GET" action="{{ route('admin.users.index') }}" class="flex items-center gap-3">
+                        <label for="family_filter" class="text-sm font-medium text-gray-700">
+                            Filtrar por Familia:
+                        </label>
+                        <select name="family_group_id" id="family_filter"
+                                onchange="this.form.submit()"
+                                class="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Todas las familias</option>
+                            @foreach($familyGroups as $group)
+                                <option value="{{ $group->id }}" {{ request('family_group_id') == $group->id ? 'selected' : '' }}>
+                                    {{ $group->name }} ({{ $group->users_count }} usuarios)
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                    @if(request('family_group_id'))
+                        <a href="{{ route('admin.users.index') }}" class="text-sm text-blue-600 hover:text-blue-800">
+                            Limpiar filtro
+                        </a>
+                    @endif
+                </div>
+
                 <div class="relative overflow-x-auto">
                     <table class="w-full text-sm text-left rtl:text-right text-gray-500">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -20,13 +44,16 @@
                                 <th scope="col" class="px-6 py-3">
                                     Nombre
                                 </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Familia
+                                </th>
                                 @if(config('app.env') === 'local')
                                 <th scope="col" class="px-6 py-3">
                                     Amigo Secreto
                                 </th>
                                 @endif
                                 <th scope="col" class="px-6 py-3">
-                                    Grupo Familiar
+                                    Grupo Familiar (Interno)
                                 </th>
                                 <th scope="col" class="px-6 py-3">
                                     Última Actividad
@@ -58,6 +85,17 @@
                                         <div class="font-normal text-gray-500">{{ $user->dni }} @if($user->nickname) ({{ $user->nickname }}) @endif</div>
                                     </div>
                                 </th>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($user->familyGroup)
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                            {{ $user->familyGroup->isDefault() ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
+                                            {{ $user->familyGroup->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 text-sm">Sin familia</span>
+                                    @endif
+                                </td>
 
                                 @if(config('app.env') === 'local')
                                 <td class="px-6 py-4 whitespace-nowrap">

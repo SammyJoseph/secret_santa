@@ -3,19 +3,68 @@
         <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
             <div class="container">
                 <h1 class="text-white text-3xl md:text-5xl font-bold mb-6 md:mb-10">🎅 Amigo Secreto 🎄</h1>
+                
+                <!-- Selector de Familia -->
+                <div class="mb-8 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <form method="GET" action="{{ route('admin.draw') }}" class="flex flex-col items-center gap-4">
+                        <label for="family_group_select" class="text-white font-medium text-lg">
+                            Seleccionar Familia:
+                        </label>
+                        <select name="family_group_id" id="family_group_select"
+                                onchange="this.form.submit()"
+                                class="flex-1 max-w-full rounded-lg border-white/30 bg-white/90 text-gray-900 font-medium shadow-lg text-sm">
+                            @foreach($familyGroups as $group)
+                                <option value="{{ $group->id }}" {{ $selectedFamilyGroupId == $group->id ? 'selected' : '' }}>
+                                    {{ $group->name }}
+                                    ({{ $group->users_count }} usuarios)
+                                    @if($group->hasDrawn()) - ✓ Sorteado @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                    
+                    <div class="mt-4 text-white text-sm space-y-1">
+                        <p><strong>Familia:</strong> {{ $selectedFamilyGroup->name }}</p>
+                        <p><strong>Estado:</strong>
+                            @if($hasAssignments)
+                                <span class="text-green-300">✓ Sorteo realizado</span>
+                            @elseif($selectedFamilyGroup->canDraw())
+                                <span class="text-blue-300">Listo para sortear</span>
+                            @else
+                                <span class="text-yellow-300">Esperando fecha de sorteo</span>
+                            @endif
+                        </p>
+                        <p><strong>Registro:</strong>
+                            @if($hasAssignments)
+                                <span class="text-red-300">🔒 Cerrado</span>
+                            @else
+                                <span class="text-green-300">✓ Abierto</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
                 @if($hasAssignments)
                     <div class="text-center">
-                        <p class="text-white text-xl mb-8 drop-shadow-md">Todos los participantes han sido asignados correctamente.</p>
+                        <p class="text-white text-xl mb-8 drop-shadow-md">Todos los participantes de {{ $selectedFamilyGroup->name }} han sido asignados correctamente.</p>
                     </div>
                 @else
                     @php
                         $currentTime = now();
-                        $enableDrawTime = \Carbon\Carbon::parse($enableDrawTime);
-                        $isEnabled = $currentTime->gte($enableDrawTime);
+                        $enableDrawTime = $selectedFamilyGroup->enable_draw_at;
+                        $isEnabled = $enableDrawTime ? $currentTime->gte($enableDrawTime) : false;
                     @endphp
-                    <button class="btn-sortear text-xl px-8 py-5 {{ $isEnabled ? '' : 'disabled' }}" onclick="{{ $isEnabled ? 'iniciarSorteo()' : '' }}" {{ $isEnabled ? '' : 'disabled' }}>
-                        🎁 Iniciar Sorteo
+                    <button class="btn-sortear text-xl px-8 py-5 {{ $isEnabled ? '' : 'disabled' }}"
+                            onclick="{{ $isEnabled ? 'iniciarSorteo()' : '' }}"
+                            {{ $isEnabled ? '' : 'disabled' }}>
+                        🎁 Iniciar Sorteo para {{ $selectedFamilyGroup->name }}
                     </button>
+                    
+                    @if(!$isEnabled && $enableDrawTime)
+                        <p class="text-white text-center mt-4">
+                            El sorteo se habilitará el {{ $enableDrawTime->format('d/m/Y H:i') }}
+                        </p>
+                    @endif
                 @endif
 
                 <div class="text-center mt-12">
@@ -207,7 +256,9 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify({})
+                        body: JSON.stringify({
+                            family_group_id: {{ $selectedFamilyGroupId }}
+                        })
                     })
                     .then(response => {
                         if (!response.ok) {

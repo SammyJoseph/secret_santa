@@ -25,11 +25,15 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
+        // Obtener family_group_id de la sesión (establecido por CaptureFamilyGroup middleware)
+        $familyGroupId = session('registration_family_group_id', 1);
+
         $user = User::create([
             'name' => $validated['name'],
             'dni' => $validated['dni'],
             'email' => $validated['email'] ?? null,
             'password' => Hash::make($validated['password']),
+            'family_group_id' => $familyGroupId,
         ]);
 
         if ($request->hasFile('profile_photo_path')) {
@@ -65,7 +69,7 @@ class UserController extends Controller
         session()->forget('temp_profile_image');
         Auth::login($user);
 
-        return redirect()->route('user.profile')->with('success', 'Tu participación fue registrada con éxito. Aquí verás quién es tu Amigo Secreto después del sorteo. Puedes actualizar tu perfil y sugerencias de regalo antes del sorteo.');
+        return redirect()->route('user.profile')->with('success', 'Tu participación fue registrada con éxito. Puedes actualizar tu perfil y tus sugerencias de regalo hasta antes del sorteo.');
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -161,26 +165,30 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
+        $familyGroup = $user->familyGroup;
 
-        $revealDate = new \DateTime(config('services.secret_santa.reveal_date'));
-        $profileEditEndDate = new \DateTime(config('services.secret_santa.profile_edit_end_date'));
+        // Usar fechas de la familia del usuario
         $now = new \DateTime();
-        $isRevealed = $now >= $revealDate;
-        $canEditProfile = $now <= $profileEditEndDate;
+        $isRevealed = $familyGroup->isRevealed();
+        $canEditProfile = $familyGroup->canEditProfile();
 
         $secretSanta = null;
         if ($isRevealed) {
-            $assignment = SecretSantaAssignment::where('giver_id', $user->id)->with('receiver')->first();
+            $assignment = SecretSantaAssignment::where('giver_id', $user->id)
+                ->where('family_group_id', $user->family_group_id)
+                ->with('receiver')
+                ->first();
+            
             if ($assignment) {
                 $secretSanta = $assignment->receiver;
             }
         }
 
         // Format dates for JavaScript
-        $revealDateJs = $revealDate->format('Y-m-d\TH:i:s');
-        $profileEditEndDateJs = $profileEditEndDate->format('Y-m-d\TH:i:s');
+        $revealDateJs = $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
+        $profileEditEndDateJs = $familyGroup->profile_edit_end_date ? $familyGroup->profile_edit_end_date->format('Y-m-d\TH:i:s') : null;
 
-        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'canEditProfile', 'profileEditEndDateJs'));
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'canEditProfile', 'profileEditEndDateJs', 'familyGroup'));
     }
 
     public function tempUpload(Request $request)

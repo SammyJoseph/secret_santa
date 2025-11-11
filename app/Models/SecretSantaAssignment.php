@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SecretSantaAssignment extends Model
 {
-    protected $fillable = ['giver_id', 'receiver_id'];
+    protected $fillable = ['giver_id', 'receiver_id', 'family_group_id'];
 
     public function giver()
     {
@@ -16,5 +16,10 @@ class SecretSantaAssignment extends Model
     public function receiver()
     {
         return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    public function familyGroup()
+    {
+        return $this->belongsTo(FamilyGroup::class);
     }
 }

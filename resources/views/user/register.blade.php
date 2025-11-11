@@ -24,10 +24,10 @@
                                             <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">
                                                 Subir Foto
                                             </span>
-                                            <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*">
+                                            <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*" data-validation-required="true">
                                         </label>
                                         <input type="hidden" name="temp_image_filename" id="temp-image-filename" value="{{ session('temp_profile_image') }}">
-                                        <span class="text-gray-400 text-xs ml-2">Opcional</span>
+                                        <span id="profile-photo-error" class="text-red-500 text-xs ml-2 animate-bounce hidden"></span>
                                     </div>
                                     @error('profile_photo_path')
                                         <p class="text-red-500 text-xs">{{ $message }}</p>
@@ -136,7 +136,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
-                                    {{-- <a href="{{ route('login') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Iniciar Sesión</a> --}}
+                                    <a href="{{ route('login') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Iniciar Sesión</a>
                                     <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Registrar mi participación</button>
                                 </div>
                             </div>
@@ -226,10 +226,38 @@
             }
         });
 
-        // Clear temp image on successful form submission (assuming no errors)
-        document.querySelector('form').addEventListener('submit', function() {
+        // Custom validation for profile photo (required but with temp upload support)
+        const form = document.querySelector('form');
+        const photoError = document.getElementById('profile-photo-error');
+        
+        form.addEventListener('submit', function(e) {
+            const hasFile = profileInput.files.length > 0;
+            const hasTempImage = tempImageFilename.value.trim() !== '';
+            
+            // Require either a new file OR a temp uploaded image
+            if (!hasFile && !hasTempImage) {
+                e.preventDefault();
+                photoError.textContent = 'Requerido';
+                photoError.classList.remove('hidden');
+                
+                // Scroll to error
+                profileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+            
+            // Clear error if validation passes
+            photoError.classList.add('hidden');
+            
+            // Clear temp image on successful form submission (assuming no errors)
             if (!@json($errors->any())) {
                 tempImageFilename.value = '';
+            }
+        });
+        
+        // Clear error when user selects a file
+        profileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                photoError.classList.add('hidden');
             }
         });
 

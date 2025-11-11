@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -34,6 +35,7 @@ class User extends Authenticatable
         'profile_photo_path',
         'funny_profile_photo_path',
         'family_id',
+        'family_group_id',
         'reset_token',
         'reset_expires_at',
         'nickname',
@@ -73,11 +75,15 @@ class User extends Authenticatable
         ];
     }
 
-    public function giftSuggestions()
+    public function giftSuggestions(): HasMany
     {
         return $this->hasMany(GiftSuggestion::class);
     }
 
+    public function familyGroup()
+    {
+        return $this->belongsTo(FamilyGroup::class);
+    }
 
     public function getAllFamilyMembers()
     {

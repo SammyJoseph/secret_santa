@@ -14,13 +14,41 @@ class DrawController extends Controller
     private $familyAssignments = [];
     private $attempts = 0;
 
-    public function index()
+    public function index(Request $request)
     {
-        $assignments = SecretSantaAssignment::with(['giver', 'receiver'])->get();
+        // Obtener todas las familias para el selector
+        $familyGroups = \App\Models\FamilyGroup::withCount('users')->get();
+        
+        // Obtener familia seleccionada (por defecto la primera)
+        $selectedFamilyGroupId = $request->get('family_group_id', 1);
+        $selectedFamilyGroup = \App\Models\FamilyGroup::find($selectedFamilyGroupId);
+        
+        if (!$selectedFamilyGroup) {
+            $selectedFamilyGroup = \App\Models\FamilyGroup::first();
+            $selectedFamilyGroupId = $selectedFamilyGroup->id;
+        }
+        
+        // Filtrar assignments y usuarios por familia seleccionada
+        $assignments = SecretSantaAssignment::with(['giver', 'receiver'])
+            ->where('family_group_id', $selectedFamilyGroupId)
+            ->get();
+        
         $hasAssignments = $assignments->isNotEmpty();
-        $users = User::all();
-        $enableDrawTime = env('SECRET_SANTA_ENABLE_DRAW');
-        return view('admin.draw', compact('assignments', 'hasAssignments', 'users', 'enableDrawTime'));
+        
+        $users = User::where('family_group_id', $selectedFamilyGroupId)->get();
+        
+        // Usar fechas de la familia seleccionada
+        $enableDrawTime = $selectedFamilyGroup->enable_draw_at;
+        
+        return view('admin.draw', compact(
+            'assignments',
+            'hasAssignments',
+            'users',
+            'enableDrawTime',
+            'familyGroups',
+            'selectedFamilyGroup',
+            'selectedFamilyGroupId'
+        ));
     }
 
     public function start(Request $request)
@@ -28,21 +56,37 @@ class DrawController extends Controller
         // Check if request wants JSON response
         $wantsJson = $request->wantsJson() || $request->is('api/*') || $request->header('Accept') === 'application/json';
 
-        // Check if assignments already exist
-        if (SecretSantaAssignment::exists()) {
+        // Obtener family_group_id del request
+        $familyGroupId = $request->input('family_group_id', 1);
+        $familyGroup = \App\Models\FamilyGroup::findOrFail($familyGroupId);
+
+        // Check if assignments already exist for this family
+        if ($familyGroup->hasDrawn()) {
             if ($wantsJson) {
-                return response()->json(['error' => 'El sorteo ya ha sido realizado.'], 400);
+                return response()->json(['error' => 'El sorteo para esta familia ya ha sido realizado.'], 400);
             }
-            return redirect()->route('admin.draw')->with('error', 'El sorteo ya ha sido realizado.');
+            return redirect()->route('admin.draw', ['family_group_id' => $familyGroupId])
+                ->with('error', 'El sorteo para esta familia ya ha sido realizado.');
         }
 
-        $users = User::all();
+        // Verificar que sea tiempo de sortear
+        if (!$familyGroup->canDraw()) {
+            if ($wantsJson) {
+                return response()->json(['error' => 'Aún no es tiempo de realizar el sorteo para esta familia.'], 400);
+            }
+            return redirect()->route('admin.draw', ['family_group_id' => $familyGroupId])
+                ->with('error', 'Aún no es tiempo de realizar el sorteo para esta familia.');
+        }
+
+        // Filtrar usuarios solo de esta familia
+        $users = User::where('family_group_id', $familyGroupId)->get();
 
         if ($users->count() < 2) {
             if ($wantsJson) {
                 return response()->json(['error' => 'Se necesitan al menos 2 usuarios para realizar el sorteo.'], 400);
             }
-            return redirect()->route('admin.draw')->with('error', 'Se necesitan al menos 2 usuarios para realizar el sorteo.');
+            return redirect()->route('admin.draw', ['family_group_id' => $familyGroupId])
+                ->with('error', 'Se necesitan al menos 2 usuarios para realizar el sorteo.');
         }
 
         try {
@@ -54,6 +98,7 @@ class DrawController extends Controller
                 SecretSantaAssignment::create([
                     'giver_id' => $giverId,
                     'receiver_id' => $receiverId,
+                    'family_group_id' => $familyGroupId,
                 ]);
             }
 
@@ -82,14 +127,15 @@ class DrawController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.draw');
+            return redirect()->route('admin.draw', ['family_group_id' => $familyGroupId]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             if ($wantsJson) {
                 return response()->json(['error' => 'Error al realizar el sorteo. Inténtalo de nuevo.'], 500);
             }
-            return redirect()->route('admin.draw')->with('error', 'Error al realizar el sorteo. Inténtalo de nuevo.');
+            return redirect()->route('admin.draw', ['family_group_id' => $familyGroupId])
+                ->with('error', 'Error al realizar el sorteo. Inténtalo de nuevo.');
         }
     }
 

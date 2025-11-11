@@ -12,6 +12,9 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link href="{{ route('admin.family-groups.index') }}" :active="request()->routeIs('admin.family-groups.*')">
+                        Familias
+                    </x-nav-link>
                     <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
@@ -23,6 +26,9 @@
 
             <!-- Navigation Links mobile -->
             <div class="space-x-8 sm:-my-px sm:ms-10 sm:hidden flex items-center">
+                <x-nav-link href="{{ route('admin.family-groups.index') }}" :active="request()->routeIs('admin.family-groups.*')">
+                    Familias
+                </x-nav-link>
                 <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
                     {{ __('Users') }}
                 </x-nav-link>
