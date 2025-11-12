@@ -136,8 +136,14 @@
                                     </div>
                                 </div>
                                 <div class="mt-5 text-right md:space-x-3 md:block flex flex-col-reverse">
-                                    <a href="{{ route('login') }}" class="mb-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Iniciar Sesión</a>
-                                    <button type="submit" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800">Registrar mi participación</button>
+                                    <a href="{{ route('login') }}" class="my-2 md:mb-0 text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Iniciar Sesión</a>
+                                    <button type="submit" id="submit-button" class="mb-2 md:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800 inline-flex items-center justify-center">
+                                        <svg id="submit-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span id="submit-text">Registrar mi participación</span>
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -229,6 +235,9 @@
         // Custom validation for profile photo (required but with temp upload support)
         const form = document.querySelector('form');
         const photoError = document.getElementById('profile-photo-error');
+        const submitButton = document.getElementById('submit-button');
+        const submitSpinner = document.getElementById('submit-spinner');
+        const submitText = document.getElementById('submit-text');
         
         form.addEventListener('submit', function(e) {
             const hasFile = profileInput.files.length > 0;
@@ -247,6 +256,11 @@
             
             // Clear error if validation passes
             photoError.classList.add('hidden');
+            
+            // Show loading state after validation passes
+            submitButton.disabled = true;
+            submitSpinner.classList.remove('hidden');
+            submitText.textContent = 'Registrando...';
             
             // Clear temp image on successful form submission (assuming no errors)
             if (!@json($errors->any())) {

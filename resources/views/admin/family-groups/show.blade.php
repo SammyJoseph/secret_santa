@@ -99,7 +99,7 @@
                                 @if($familyGroup->enable_draw_at)
                                     <p class="text-xs mt-1">
                                         @if($familyGroup->canDraw())
-                                            <span class="text-green-600">✓ Sorteo habilitado</span>
+                                            <span class="text-green-600">✓ Sorteo realizado</span>
                                         @else
                                             <span class="text-gray-500">Faltan {{ now()->diffForHumans($familyGroup->enable_draw_at, true) }}</span>
                                         @endif

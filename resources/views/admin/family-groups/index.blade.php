@@ -66,7 +66,14 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <code class="bg-gray-100 px-2 py-1 rounded">{{ $group->slug }}</code>
+                                        <code class="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors relative group"
+                                              onclick="copySlugUrl('{{ $group->slug }}', this)"
+                                              title="Clic para copiar URL">
+                                            {{ $group->slug }}
+                                            <span class="copy-tooltip hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 text-xs text-white bg-green-600 rounded shadow-lg whitespace-nowrap">
+                                                ✓ Copiado!
+                                            </span>
+                                        </code>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                         <span class="text-sm font-semibold text-gray-900">{{ $group->users_count }}</span>
@@ -140,4 +147,26 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function copySlugUrl(slug, element) {
+            const appUrl = '{{ config('app.url') }}';
+            const fullUrl = `${appUrl}/registro?fam=${slug}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                // Show tooltip
+                const tooltip = element.querySelector('.copy-tooltip');
+                tooltip.classList.remove('hidden');
+                
+                // Hide tooltip after 2 seconds
+                setTimeout(() => {
+                    tooltip.classList.add('hidden');
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                alert('Error al copiar la URL');
+            });
+        }
+    </script>
 </x-app-layout>
