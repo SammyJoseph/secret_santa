@@ -31,7 +31,15 @@
                     <div class="flex flex-col items-center bg-white rounded-lg p-6">
                         <h3 class="font-semibold text-lg text-center mb-6">Mi Amigo Secreto es <span class="text-[#F8B229]">{{ $secretSanta->nickname ?: $secretSanta->name }}</span></h3>
                         <div class="w-40 lg:w-60 aspect-square bg-white rounded-full border-2 border-[#F8B229] overflow-hidden mb-3 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('secret-friend-preview').src">
-                            <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $secretSanta->funny_profile_photo_path ? asset('storage/' . $secretSanta->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto de {{ $secretSanta->name }}">
+                            @php
+                                $ssProfileSrc = asset('assets/images/no-image.jpg');
+                                if ($secretSanta->funny_profile_photo_path) {
+                                    $ssProfileSrc = Storage::url($secretSanta->funny_profile_photo_path);
+                                } elseif ($secretSanta->profile_photo_path) {
+                                    $ssProfileSrc = Storage::url($secretSanta->profile_photo_path);
+                                }
+                            @endphp
+                            <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $ssProfileSrc }}" alt="Foto de {{ $secretSanta->name }}">
                         </div>
                         <div class="mb-4">
                             <p class="text-sm font-semibold text-gray-600 mb-4">A {{ $secretSanta->nickname ?: $secretSanta->name }} le gustaría recibir cualquiera de estas opciones:</p>
