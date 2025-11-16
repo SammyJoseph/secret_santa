@@ -11,7 +11,7 @@
                 <!-- Filtro por Familia -->
                 <div class="mb-6 flex items-center gap-4">
                     <form method="GET" action="{{ route('admin.users.index') }}" class="flex items-center gap-3">
-                        <label for="family_filter" class="text-sm font-medium text-gray-700">
+                        <label for="family_filter" class="text-sm font-medium text-gray-700 sr-only">
                             Filtrar por Familia:
                         </label>
                         <select name="family_group_id" id="family_filter"
@@ -45,6 +45,9 @@
                                     Nombre
                                 </th>
                                 <th scope="col" class="px-6 py-3">
+                                    Última Actividad
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Familia
                                 </th>
                                 @if(config('app.env') === 'local')
@@ -54,12 +57,12 @@
                                 @endif
                                 <th scope="col" class="px-6 py-3">
                                     Grupo Familiar (Interno)
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Última Actividad
-                                </th>
+                                </th>                                
                                 <th scope="col" class="px-6 py-3">
                                     Fecha de Registro
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Acciones
                                 </th>
                             </tr>
                         </thead>
@@ -73,11 +76,16 @@
                                 @endif
                                 <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap">
                                     <div class="flex space-x-2">
+                                        @php
+                                            $profileSrc = asset('assets/images/profile.jpg');
+                                            if ($user->funny_profile_photo_path) {
+                                                $profileSrc = Storage::url($user->funny_profile_photo_path);
+                                            } elseif ($user->profile_photo_path) {
+                                                $profileSrc = Storage::url($user->profile_photo_path);
+                                            }
+                                        @endphp
                                         <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview-{{ $user->id }}').src">
-                                            <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->profile_photo_url }}" alt="Avatar de {{ $user->name }}">
-                                        </div>
-                                        <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('funny-preview-{{ $user->id }}').src">
-                                            <img id="funny-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $user->funny_profile_photo_path ? Storage::url($user->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Foto divertida de {{ $user->name }}">
+                                            <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $profileSrc }}" alt="Avatar de {{ $user->name }}">
                                         </div>
                                     </div>
                                     <div class="ps-3">
@@ -85,6 +93,10 @@
                                         <div class="font-normal text-gray-500">{{ $user->dni }} @if($user->nickname) ({{ $user->nickname }}) @endif</div>
                                     </div>
                                 </th>
+
+                                <td class="px-6 py-4">
+                                    {{ $user->updated_at->format('d/m/Y H:i') }}
+                                </td>
                                 
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($user->familyGroup)
@@ -131,12 +143,16 @@
                                             @endforeach
                                         </div>
                                     @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ $user->updated_at->format('d/m/Y H:i') }}
-                                </td>
+                                </td>                                
                                 <td class="px-6 py-4">
                                     {{ $user->created_at->format('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex space-x-2 items-center">
+                                        <a href="{{ route('admin.users.profile', $user) }}" title="Ver perfil completo" class="text-blue-600 hover:text-blue-800">
+                                            <svg class="w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#2563eb"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -154,7 +170,7 @@
                     <div @click.away="showModal = false" class="relative px-4 rounded-lg shadow-lg max-w-lg w-full">
                         <img x-bind:src="modalImage" alt="Profile image large" class="w-full h-auto rounded-md">
                         <button @click="showModal = false" class="absolute top-0 right-0 mt-2 mr-2 text-white bg-gray-800 rounded-full p-1 hover:bg-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>

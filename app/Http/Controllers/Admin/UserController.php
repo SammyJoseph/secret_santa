@@ -60,6 +60,38 @@ class UserController extends Controller
     }
 
     /**
+     * Show user profile to admin (read-only)
+     */
+    public function showProfile(User $user)
+    {
+        $familyGroup = $user->familyGroup;
+        
+        // Determine if info is revealed for this user
+        $isRevealed = $familyGroup && $familyGroup->isRevealed();
+        
+        $secretSanta = null;
+        if ($isRevealed) {
+            $assignment = \App\Models\SecretSantaAssignment::where('giver_id', $user->id)
+                ->where('family_group_id', $user->family_group_id)
+                ->with('receiver')
+                ->first();
+            
+            if ($assignment) {
+                $secretSanta = $assignment->receiver;
+            }
+        }
+
+        // Format dates for JavaScript (admin doesn't need edit limits)
+        $revealDateJs = $familyGroup && $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
+        $profileEditEndDateJs = null;
+
+        // Pass additional flag to indicate admin view
+        $isAdminView = true;
+
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'profileEditEndDateJs', 'familyGroup', 'isAdminView'));
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(User $user)

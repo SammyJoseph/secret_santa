@@ -44,6 +44,7 @@ Route::middleware([
     })->name('dashboard'); */
 
     Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
+    Route::get('admin/users/{user}/profile', [AdminUserController::class, 'showProfile'])->middleware('is_admin')->name('admin.users.profile');
     Route::post('admin/users/{user}/generate-reset-link', [AdminUserController::class, 'generateResetLink'])->middleware('is_admin')->name('admin.users.generate-reset-link');
     Route::post('admin/users/{user}/assign-family', [App\Http\Controllers\Admin\FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
     Route::delete('admin/users/{user}/remove-family', [App\Http\Controllers\Admin\FamilyController::class, 'remove'])->middleware('is_admin')->name('admin.users.remove-family');
