@@ -85,12 +85,12 @@
                                             }
                                         @endphp
                                         <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('profile-preview-{{ $user->id }}').src">
-                                            <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $profileSrc }}" alt="Avatar de {{ $user->name }}">
+                                            <img id="profile-preview-{{ $user->id }}" class="w-full h-full object-cover" src="{{ $profileSrc }}" alt="Avatar de {{ $user->nickname ?: $user->name }}">
                                         </div>
                                     </div>
                                     <div class="ps-3">
-                                        <div class="text-base font-semibold"><a href="{{ route('admin.users.edit', $user) }}">{{ $user->name }}</a></div>
-                                        <div class="font-normal text-gray-500">{{ $user->dni }} @if($user->nickname) ({{ $user->nickname }}) @endif</div>
+                                        <div class="text-base font-semibold"><a href="{{ route('admin.users.edit', $user) }}">{{ $user->nickname ?: $user->name }}</a></div>
+                                        <div class="font-normal text-gray-500">{{ $user->dni }}</div>
                                     </div>
                                 </th>
 
