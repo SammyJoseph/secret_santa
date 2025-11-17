@@ -133,50 +133,55 @@
                                     </div>
                                 </div>
                                 <div class="mt-6">
-                                    @foreach($user->giftSuggestions ?? [] as $index => $suggestion)
-                                    @php
-                                    if ($index == 0) {
-                                        $themeColor = '#BB2528';
-                                    } elseif ($index == 1) {
-                                        $themeColor = '#244372';
-                                    } else {                                        
-                                        $themeColor = '#414f4f';
-                                    }
-                                    @endphp
-                                    <div class="space-y-2 w-full text-xs mb-6">
-                                        <label class=" font-semibold text-[{{ $themeColor }}] py-2">Mi sugerencia de regalo {{ $index + 1 }}</label>
-                                        <div class="flex flex-wrap items-stretch w-full mb-4 relative">
-                                            <div class="flex">
-                                                <span
-                                                    class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[{{ $themeColor }}] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[{{ $themeColor }}] justify-center items-center  text-xl rounded-lg text-white">
-                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
-                                                </span>
+                                    @for($index = 0; $index < 3; $index++)
+                                        @php
+                                            $suggestion = $user->giftSuggestions[$index] ?? null;
+                                            $suggestionValue = $suggestion ? $suggestion->suggestion : '';
+                                            $referenceImagePath = $suggestion ? $suggestion->reference_image_path : null;
+                                            $tempGiftImageValue = session('temp_gift_images')[$index] ?? '';
+                                            
+                                            if ($index == 0) {
+                                                $themeColor = '#BB2528';
+                                            } elseif ($index == 1) {
+                                                $themeColor = '#244372';
+                                            } else {
+                                                $themeColor = '#414f4f';
+                                            }
+                                        @endphp
+                                        <div class="space-y-2 w-full text-xs mb-6">
+                                            <label class=" font-semibold text-[{{ $themeColor }}] py-2">Mi sugerencia de regalo {{ $index + 1 }}</label>
+                                            <div class="flex flex-wrap items-stretch w-full mb-4 relative">
+                                                <div class="flex">
+                                                    <span
+                                                        class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[{{ $themeColor }}] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[{{ $themeColor }}] justify-center items-center  text-xl rounded-lg text-white">
+                                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
+                                                    </span>
+                                                </div>
+                                                <textarea name="gift_suggestions[{{ $index }}]" required
+                                                    class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 bg-gray-50 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
+                                                    placeholder="{{ $index == 0 ? 'Me gustaría recibir...' : 'O también me gustaría recibir...' }}" autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.' . $index, $suggestionValue) }}</textarea>
                                             </div>
-                                            <textarea name="gift_suggestions[{{ $index }}]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 bg-gray-50 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
-                                                placeholder="Me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.' . $index, $suggestion->suggestion) }}</textarea>
-                                        </div>
-                                        <div class="flex items-center mb-4">
-                                            <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer mr-2" @click="showModal = true; modalImage = document.getElementById('gift-preview-{{ $index }}').src">
-                                                <img id="gift-preview-{{ $index }}" class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+                                            <div class="flex items-center mb-4">
+                                                <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer mr-2" @click="showModal = true; modalImage = document.getElementById('gift-preview-{{ $index }}').src">
+                                                    <img id="gift-preview-{{ $index }}" class="w-full h-full object-cover rounded-lg" src="{{ $referenceImagePath ? asset('storage/' . $referenceImagePath) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+                                                </div>
+                                                <label class="cursor-pointer">
+                                                    <span class="focus:outline-none text-white text-xs py-1 px-3 rounded-full bg-[{{ $themeColor }}] hover:shadow-lg">Subir imagen referencial</span>
+                                                    <input type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*">
+                                                </label>
+                                                <input type="hidden" name="temp_gift_image_{{ $index }}" id="temp-gift-image-{{ $index }}" value="{{ $tempGiftImageValue }}">
                                             </div>
-                                            <label class="cursor-pointer">
-                                                <span class="focus:outline-none text-white text-xs py-1 px-3 rounded-full bg-[{{ $themeColor }}] hover:shadow-lg">Subir imagen referencial</span>
-                                                <input type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*">
-                                            </label>
-                                            <input type="hidden" name="temp_gift_image_{{ $index }}" id="temp-gift-image-{{ $index }}" value="{{ session('temp_gift_images')[$index] ?? '' }}">
+                                            @error('gift_suggestions.' . $index)
+                                                <p class="text-red-500 text-xs">{{ $message }}</p>
+                                            @enderror
                                         </div>
-                                        @error('gift_suggestions.' . $index)
-                                            <p class="text-red-500 text-xs">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    @endforeach
+                                    @endfor
                                 </div>
                                 <div class="mt-5 text-right lg:space-x-3 lg:block flex flex-col-reverse">
                                     <button type="button" onclick="document.getElementById('logout-form').submit();" class="text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cerrar Sesión</button>
                                     <button type="submit" class="mb-2 lg:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800" :disabled="isSubmitting">
                                         <span x-show="!isSubmitting">Guardar Cambios</span>
-                                        <span x-show="isSubmitting" class="flex items-center">
+                                        <span x-show="isSubmitting" class="flex items-center justify-center">
                                             <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -248,13 +253,13 @@
             }
 
             // Load gift image previews
-            @foreach($user->giftSuggestions ?? [] as $index => $suggestion)
+            @for($index = 0; $index < 3; $index++)
                 const tempGiftFilename{{ $index }} = document.getElementById('temp-gift-image-{{ $index }}').value;
                 if (tempGiftFilename{{ $index }}) {
                     document.getElementById('gift-preview-{{ $index }}').src = '{{ url("/temp-image-gift") }}/' + tempGiftFilename{{ $index }};
                     document.getElementById('gift-preview-{{ $index }}').parentElement.classList.remove('hidden');
                 }
-            @endforeach
+            @endfor
         });
 
         // Handle file selection with AJAX upload
@@ -301,7 +306,7 @@
         });
 
         // Handle gift image file selection with AJAX upload
-        @foreach($user->giftSuggestions ?? [] as $index => $suggestion)
+        @for($index = 0; $index < 3; $index++)
             const giftInput{{ $index }} = document.getElementById('gift-image-input-{{ $index }}');
             const giftPreview{{ $index }} = document.getElementById('gift-preview-{{ $index }}');
             const tempGiftImage{{ $index }} = document.getElementById('temp-gift-image-{{ $index }}');
@@ -340,29 +345,31 @@
                     .catch(error => {
                         console.error('Upload failed:', error);
                         // Reset to default if upload fails
-                        giftPreview{{ $index }}.src = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : '' }}';
+                        const existingImagePath = '{{ $user->giftSuggestions[$index]->reference_image_path ?? '' }}';
+                        giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '';
                         if (!giftPreview{{ $index }}.src) {
                             giftPreview{{ $index }}.parentElement.classList.add('hidden');
                         }
                     });
                 } else {
                     // If no file selected, reset to default
-                    giftPreview{{ $index }}.src = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : '' }}';
+                    const existingImagePath = '{{ $user->giftSuggestions[$index]->reference_image_path ?? '' }}';
+                    giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '';
                     tempGiftImage{{ $index }}.value = '';
                     if (!giftPreview{{ $index }}.src) {
                         giftPreview{{ $index }}.parentElement.classList.add('hidden');
                     }
                 }
             });
-        @endforeach
+        @endfor
 
         // Clear temp image on successful form submission (assuming no errors)
         document.querySelector('form').addEventListener('submit', function() {
             if (!@json($errors->any())) {
                 tempImageFilename.value = '';
-                @foreach($user->giftSuggestions ?? [] as $index => $suggestion)
+                @for($index = 0; $index < 3; $index++)
                     document.getElementById('temp-gift-image-{{ $index }}').value = '';
-                @endforeach
+                @endfor
             }
         });
 

@@ -149,9 +149,11 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex space-x-2 items-center">
-                                        <a href="{{ route('admin.users.profile', $user) }}" title="Ver perfil completo" class="text-blue-600 hover:text-blue-800">
-                                            <svg class="w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#2563eb"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>
-                                        </a>
+                                        @if(!$user->secretSantaAssignment)
+                                            <a href="{{ route('admin.users.profile', $user) }}" title="Ver perfil" class="text-blue-600 hover:text-blue-800">
+                                                <svg class="w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#2563eb"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
