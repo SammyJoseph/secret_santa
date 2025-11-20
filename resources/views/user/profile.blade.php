@@ -50,7 +50,7 @@
                                             <img class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
                                         </div>
                                         <div class="flex-1">
-                                            <p class="text-sm text-gray-700">{{ $suggestion->suggestion }}</p>
+                                            <p class="text-sm text-gray-700">{!! $suggestion->formatted_suggestion ?? e($suggestion->suggestion) !!}</p>
                                         </div>
                                     </div>
                                 @endforeach
@@ -179,7 +179,7 @@
                                 </div>
                                 <div class="mt-5 text-right lg:space-x-3 lg:block flex flex-col-reverse">
                                     <button type="button" onclick="document.getElementById('logout-form').submit();" class="text-center bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-full hover:shadow-lg hover:bg-gray-100">Cerrar Sesión</button>
-                                    <button type="submit" class="mb-2 lg:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800" :disabled="isSubmitting">
+                                    <button type="submit" class="mb-3 lg:mb-0 bg-[#146B3A] px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-full hover:shadow-lg hover:bg-green-800" :disabled="isSubmitting">
                                         <span x-show="!isSubmitting">Guardar Cambios</span>
                                         <span x-show="isSubmitting" class="flex items-center justify-center">
                                             <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

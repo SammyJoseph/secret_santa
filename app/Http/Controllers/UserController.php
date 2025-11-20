@@ -181,6 +181,11 @@ class UserController extends Controller
             
             if ($assignment) {
                 $secretSanta = $assignment->receiver;
+                
+                // Format gift suggestions to make URLs clickable
+                foreach ($secretSanta->giftSuggestions as $suggestion) {
+                    $suggestion->formatted_suggestion = $this->formatSuggestion($suggestion->suggestion);
+                }
             }
         }
 
@@ -257,6 +262,63 @@ class UserController extends Controller
         }
 
         abort(404);
+    }
+
+    /**
+     * Format suggestion text to make URLs clickable.
+     */
+    private function formatSuggestion($text)
+    {
+        // Escape the text first to prevent XSS from non-link parts
+        $text = e($text);
+
+        // Pattern to find URLs (http, https, or www.)
+        $pattern = '/(https?:\/\/|www\.)[^\s]+/';
+
+        return preg_replace_callback($pattern, function($matches) {
+            $url = $matches[0];
+            
+            // Clean trailing punctuation and HTML entities
+            $dirty = true;
+            while ($dirty) {
+                $dirty = false;
+                $lastChar = substr($url, -1);
+                if (in_array($lastChar, ['.', ',', '!', '?', ')', ']'])) {
+                    $url = substr($url, 0, -1);
+                    $dirty = true;
+                }
+                if (str_ends_with($url, '&quot;')) {
+                    $url = substr($url, 0, -6);
+                    $dirty = true;
+                }
+                if (str_ends_with($url, '&lt;')) {
+                    $url = substr($url, 0, -4);
+                    $dirty = true;
+                }
+                if (str_ends_with($url, '&gt;')) {
+                    $url = substr($url, 0, -4);
+                    $dirty = true;
+                }
+            }
+
+            $href = $url;
+            if (strpos($url, 'www.') === 0) {
+                $href = 'https://' . $url;
+            }
+
+            // Parse URL for display
+            $parsedUrl = html_entity_decode($href);
+            $parsed = parse_url($parsedUrl);
+            $host = $parsed['host'] ?? $url;
+            
+            // Remove www. from display
+            $host = preg_replace('/^www\./', '', $host);
+            
+            // Truncate and add ellipsis
+            $display = $host . '...';
+
+            return '<a href="' . $href . '" target="_blank" class="text-blue-600 hover:underline" title="' . $url . '">' . $display . '</a>';
+        }, $text);
     }
 
     /**
