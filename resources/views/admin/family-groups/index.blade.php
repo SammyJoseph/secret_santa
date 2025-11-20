@@ -1,9 +1,9 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-1 sm:py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-3 sm:p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Gestión de Familias</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Gestión de Familias</h2>
                     <a href="{{ route('admin.family-groups.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                         + Nueva Familia
                     </a>
@@ -28,12 +28,12 @@
                                 <th class="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                     Familia
                                 </th>
-                                <th class="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Slug
-                                </th>
                                 <th class="px-6 py-3 border-b border-gray-300 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                                     Usuarios
                                 </th>
+                                <th class="px-6 py-3 border-b border-gray-300 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    Slug
+                                </th>                                
                                 <th class="px-6 py-3 border-b border-gray-300 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                                     Estado
                                 </th>
@@ -65,6 +65,9 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        <span class="text-sm font-semibold text-gray-900">{{ $group->users_count }}</span>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         <code class="bg-gray-100 px-2 py-1 rounded cursor-pointer hover:bg-gray-200 transition-colors relative group"
                                               onclick="copySlugUrl('{{ $group->slug }}', this)"
@@ -74,10 +77,7 @@
                                                 ✓ Copiado!
                                             </span>
                                         </code>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <span class="text-sm font-semibold text-gray-900">{{ $group->users_count }}</span>
-                                    </td>
+                                    </td>                                    
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                         @if($group->hasDrawn())
                                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -133,16 +133,6 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-
-                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 class="text-sm font-semibold text-blue-900 mb-2">ℹ️ Información importante:</h3>
-                    <ul class="text-sm text-blue-800 space-y-1">
-                        <li>• <strong>Original:</strong> La familia original no puede ser editada ni eliminada</li>
-                        <li>• <strong>Sorteado:</strong> Una vez realizado el sorteo, el registro se cierra automáticamente</li>
-                        <li>• <strong>Cerrado:</strong> No se pueden registrar más usuarios en familias con sorteo realizado</li>
-                        <li>• <strong>Eliminar:</strong> Solo se pueden eliminar familias sin usuarios registrados</li>
-                    </ul>
                 </div>
             </div>
         </div>

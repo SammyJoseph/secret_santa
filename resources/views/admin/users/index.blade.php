@@ -1,13 +1,7 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Usuarios Registrados') }}
-        </h2>
-    </x-slot>
-
     <div class="py-1 sm:py-12" x-data="{ showModal: false, modalImage: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="p-6 bg-white shadow-md sm:rounded-lg">
+            <div class="p-3 sm:p-6 bg-white shadow-md sm:rounded-lg">
                 <!-- Filtro por Familia -->
                 <div class="mb-6 flex items-center gap-4">
                     <form method="GET" action="{{ route('admin.users.index') }}" class="flex items-center gap-3">
@@ -42,14 +36,14 @@
                                 </th>
                                 @endif
                                 <th scope="col" class="px-6 py-3">
+                                    Familia
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Nombre
                                 </th>
                                 <th scope="col" class="px-6 py-3">
                                     Última Actividad
-                                </th>
-                                <th scope="col" class="px-6 py-3">
-                                    Familia
-                                </th>
+                                </th>                                
                                 @if(config('app.env') === 'local')
                                 <th scope="col" class="px-6 py-3">
                                     Amigo Secreto
@@ -74,6 +68,23 @@
                                     {{ $loop->count - $loop->iteration + 1 }}
                                 </td>
                                 @endif
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($user->familyGroup)
+                                        @php
+                                            // Generar un color consistente basado en el ID de la familia
+                                            $hash = abs(crc32($user->familyGroup->id));
+                                            $hue = $hash % 360;
+                                            $bgColor = "hsl({$hue}, 85%, 90%)"; // Fondo pastel
+                                            $textColor = "hsl({$hue}, 85%, 25%)"; // Texto oscuro
+                                        @endphp
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                            style="background-color: {{ $bgColor }}; color: {{ $textColor }};">
+                                            {{ $user->familyGroup->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 text-sm">Sin familia</span>
+                                    @endif
+                                </td>
                                 <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap">
                                     <div class="flex space-x-2">
                                         @php
@@ -96,18 +107,7 @@
 
                                 <td class="px-6 py-4">
                                     {{ $user->updated_at->format('d/m/Y H:i') }}
-                                </td>
-                                
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($user->familyGroup)
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                            {{ $user->familyGroup->isDefault() ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
-                                            {{ $user->familyGroup->name }}
-                                        </span>
-                                    @else
-                                        <span class="text-gray-400 text-sm">Sin familia</span>
-                                    @endif
-                                </td>
+                                </td>                                                            
 
                                 @if(config('app.env') === 'local')
                                 <td class="px-6 py-4 whitespace-nowrap">

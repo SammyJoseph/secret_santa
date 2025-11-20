@@ -99,7 +99,7 @@
                                 @if($familyGroup->enable_draw_at)
                                     <p class="text-xs mt-1">
                                         @if($familyGroup->canDraw())
-                                            <span class="text-green-600">✓ Sorteo realizado</span>
+                                            <span class="text-green-600">✓ Listo para sortear</span>
                                         @else
                                             <span class="text-gray-500">Faltan {{ now()->diffForHumans($familyGroup->enable_draw_at, true) }}</span>
                                         @endif
@@ -152,6 +152,18 @@
                                 Editar
                             </a>
                         @endif
+                        
+                        @if($familyGroup->hasDrawn())
+                            <form action="{{ route('admin.draw.reset') }}" method="POST" class="inline-block" 
+                                  onsubmit="return confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará PERMANENTEMENTE el sorteo actual de esta familia.\n\nTodos los participantes perderán su amigo secreto asignado y tendrás que realizar el sorteo nuevamente.\n\n¿Deseas continuar?');">
+                                @csrf
+                                <input type="hidden" name="family_group_id" value="{{ $familyGroup->id }}">
+                                <button type="submit" class="bg-red-600 hover:bg-red-800 text-white font-bold py-2 px-4 rounded shadow">
+                                    ⚠️ Deshacer Sorteo
+                                </button>
+                            </form>
+                        @endif
+
                         <a href="{{ route('admin.draw', ['family_group_id' => $familyGroup->id]) }}" 
                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                             Ver Sorteo

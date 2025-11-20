@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\DrawController;
+use App\Http\Controllers\Admin\FamilyController;
+use App\Http\Controllers\Admin\FamilyGroupController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -39,20 +42,17 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    /* Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard'); */
-
     Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
     Route::get('admin/users/{user}/profile', [AdminUserController::class, 'showProfile'])->middleware('is_admin')->name('admin.users.profile');
     Route::post('admin/users/{user}/generate-reset-link', [AdminUserController::class, 'generateResetLink'])->middleware('is_admin')->name('admin.users.generate-reset-link');
-    Route::post('admin/users/{user}/assign-family', [App\Http\Controllers\Admin\FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
-    Route::delete('admin/users/{user}/remove-family', [App\Http\Controllers\Admin\FamilyController::class, 'remove'])->middleware('is_admin')->name('admin.users.remove-family');
+    Route::post('admin/users/{user}/assign-family', [FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
+    Route::delete('admin/users/{user}/remove-family', [FamilyController::class, 'remove'])->middleware('is_admin')->name('admin.users.remove-family');
     
     // Rutas de gestión de family groups
-    Route::resource('admin/family-groups', App\Http\Controllers\Admin\FamilyGroupController::class)->middleware('is_admin')->names('admin.family-groups');
+    Route::resource('admin/family-groups', FamilyGroupController::class)->middleware('is_admin')->names('admin.family-groups');
     
-    Route::get('admin/draw', [App\Http\Controllers\Admin\DrawController::class, 'index'])->middleware('is_admin')->name('admin.draw');
-    Route::post('admin/draw/start', [App\Http\Controllers\Admin\DrawController::class, 'start'])->middleware('is_admin')->name('admin.draw.start');
+    Route::get('admin/draw', [DrawController::class, 'index'])->middleware('is_admin')->name('admin.draw');
+    Route::post('admin/draw/start', [DrawController::class, 'start'])->middleware('is_admin')->name('admin.draw.start');
+    Route::post('admin/draw/reset', [DrawController::class, 'reset'])->middleware('is_admin')->name('admin.draw.reset');
     Route::get('/perfil', [UserController::class, 'profile'])->name('user.profile');
 });

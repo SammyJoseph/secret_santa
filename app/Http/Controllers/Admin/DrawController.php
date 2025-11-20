@@ -139,6 +139,57 @@ class DrawController extends Controller
         }
     }
 
+    public function reset(Request $request)
+    {
+        // Check if request wants JSON response
+        $wantsJson = $request->wantsJson() || $request->is('api/*') || $request->header('Accept') === 'application/json';
+
+        $familyGroupId = $request->input('family_group_id');
+        
+        if (!$familyGroupId) {
+            if ($wantsJson) {
+                return response()->json(['error' => 'ID de familia requerido.'], 400);
+            }
+            return back()->with('error', 'ID de familia requerido.');
+        }
+
+        $familyGroup = \App\Models\FamilyGroup::findOrFail($familyGroupId);
+
+        if (!$familyGroup->hasDrawn()) {
+            if ($wantsJson) {
+                return response()->json(['error' => 'Esta familia no tiene un sorteo realizado.'], 400);
+            }
+            return back()->with('error', 'Esta familia no tiene un sorteo realizado.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Delete all assignments for this family
+            SecretSantaAssignment::where('family_group_id', $familyGroupId)->delete();
+
+            DB::commit();
+
+            Log::info('Sorteo deshecho para la familia: ' . $familyGroup->name);
+
+            if ($wantsJson) {
+                return response()->json(['success' => true, 'message' => 'Sorteo deshecho correctamente.']);
+            }
+
+            return redirect()->route('admin.family-groups.edit', $familyGroup)
+                ->with('success', 'El sorteo ha sido deshecho correctamente. Ahora puedes agregar más participantes y volver a sortear.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al deshacer sorteo: ' . $e->getMessage());
+            
+            if ($wantsJson) {
+                return response()->json(['error' => 'Error al deshacer el sorteo.'], 500);
+            }
+            return back()->with('error', 'Error al deshacer el sorteo.');
+        }
+    }
+
     private function performDraw($users)
     {
         $userIds = $users->pluck('id')->toArray();
