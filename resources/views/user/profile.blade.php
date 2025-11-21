@@ -24,11 +24,11 @@
                 </button>
             </div>
             @endif
-            <div class="p-6 lg:p-10">            
-                <div class="grid gap-8 grid-cols-1 lg:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">
+            <div class="p-4 lg:p-10">            
+                <div class="grid gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">
                     <!-- Left Column: Secret Friend Placeholder -->
                     @if($isRevealed && $secretSanta)
-                    <div class="flex flex-col items-center bg-white rounded-lg p-6">
+                    <div class="flex flex-col items-center bg-white rounded-lg p-5 lg:p-6">
                         <h3 class="font-semibold text-lg text-center mb-6">Mi Amigo Secreto es <span class="text-[#F8B229]">{{ $secretSanta->nickname ?: $secretSanta->name }}</span></h3>
                         <div class="w-40 lg:w-60 aspect-square bg-white rounded-full border-2 border-[#F8B229] overflow-hidden mb-3 cursor-pointer" @click="showModal = true; modalImage = document.getElementById('secret-friend-preview').src">
                             @php
@@ -75,7 +75,7 @@
                     @endif
 
                     <!-- Right Column: User Profile Edit -->
-                    <div class="flex flex-col bg-white rounded-lg p-6">
+                    <div class="flex flex-col bg-white rounded-lg p-5 lg:p-6">
                         <div class="flex items-center justify-between mb-3 lg:mb-0">
                             <h2 class="font-semibold text-lg">{{ isset($isAdminView) ? 'Perfil de Usuario' : 'Mi Perfil' }}</h2>
                             @if($user->is_admin && !isset($isAdminView))

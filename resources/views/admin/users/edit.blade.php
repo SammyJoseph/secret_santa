@@ -1,8 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Editar Usuario') }}
-        </h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar Usuario</h2>
     </x-slot>
 
     <div class="py-12">
@@ -14,7 +12,7 @@
                         @csrf
                         @method('PUT')
                         <div class="relative mx-auto w-36 rounded-full">
-                            <img id="profile-preview" class="mx-auto w-full aspect-square object-cover rounded-full cursor-pointer" src="{{ $user->funny_profile_photo_path ? asset('storage/' . $user->funny_profile_photo_path) : asset('assets/images/profile.jpg') }}" alt="Avatar de {{ $user->name }}" @click="showModal = true; modalImage = document.getElementById('profile-preview').src" />
+                            <img id="profile-preview" class="mx-auto w-full aspect-square object-cover rounded-full cursor-pointer" src="{{ $user->funny_profile_photo_path ? Storage::url($user->funny_profile_photo_path) : ($user->profile_photo_path ? Storage::url($user->profile_photo_path) : asset('assets/images/profile.jpg')) }}" alt="Avatar de {{ $user->name }}" @click="showModal = true; modalImage = document.getElementById('profile-preview').src" />
                             <label for="profile-image-input" class="absolute bottom-0 right-0 bg-[#F8B229] text-white text-xs py-1 px-2 rounded-full cursor-pointer hover:bg-amber-400">Cambiar</label>
                             <input type="file" id="profile-image-input" name="funny_profile_photo_path" class="hidden" accept="image/*">
                         </div>
