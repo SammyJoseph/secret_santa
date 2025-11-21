@@ -82,18 +82,6 @@ class FamilyGroupController extends Controller
      */
     public function edit(FamilyGroup $familyGroup)
     {
-        // Proteger familia default
-        if ($familyGroup->isDefault()) {
-            return redirect()->route('admin.family-groups.index')
-                ->with('error', 'La familia original no puede ser modificada para proteger la integridad del sorteo existente.');
-        }
-
-        // Proteger familias ya sorteadas
-        if ($familyGroup->hasDrawn()) {
-            return redirect()->route('admin.family-groups.index')
-                ->with('error', 'No se puede editar una familia que ya tiene un sorteo realizado.');
-        }
-
         return view('admin.family-groups.edit', compact('familyGroup'));
     }
 
@@ -102,16 +90,28 @@ class FamilyGroupController extends Controller
      */
     public function update(Request $request, FamilyGroup $familyGroup)
     {
-        // Proteger familia default
-        if ($familyGroup->isDefault()) {
-            return redirect()->route('admin.family-groups.index')
-                ->with('error', 'La familia original no puede ser modificada.');
-        }
-
-        // Proteger familias ya sorteadas
+        // Si la familia ya fue sorteada, solo permitir editar profile_edit_end_date
         if ($familyGroup->hasDrawn()) {
-            return redirect()->route('admin.family-groups.index')
-                ->with('error', 'No se puede editar una familia que ya tiene un sorteo realizado.');
+            $validated = $request->validate([
+                'profile_edit_end_date' => [
+                    'required',
+                    'date',
+                    function ($attribute, $value, $fail) use ($familyGroup) {
+                        if ($familyGroup->reveal_date && \Carbon\Carbon::parse($value)->lte($familyGroup->reveal_date)) {
+                            $fail('La fecha límite debe ser posterior a la fecha de revelación.');
+                        }
+                    },
+                ],
+            ], [
+                'profile_edit_end_date.required' => 'La fecha límite de edición es obligatoria',
+            ]);
+
+            $familyGroup->update([
+                'profile_edit_end_date' => $validated['profile_edit_end_date']
+            ]);
+
+            return redirect()->route('admin.family-groups.show', $familyGroup)
+                ->with('success', 'Fecha límite de edición de perfil actualizada.');
         }
 
         $validated = $request->validate([
@@ -143,7 +143,7 @@ class FamilyGroupController extends Controller
 
         $familyGroup->update($validated);
 
-        return redirect()->route('admin.family-groups.index')
+        return redirect()->route('admin.family-groups.show', $familyGroup)
             ->with('success', 'Familia actualizada exitosamente.');
     }
 

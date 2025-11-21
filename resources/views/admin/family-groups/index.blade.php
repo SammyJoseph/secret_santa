@@ -38,7 +38,7 @@
                                     Estado
                                 </th>
                                 <th class="px-6 py-3 border-b border-gray-300 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                    Registro
+                                    Fecha Edición
                                 </th>
                                 <th class="px-6 py-3 border-b border-gray-300 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                                     Acciones
@@ -55,7 +55,7 @@
                                                     {{ $group->name }}
                                                     @if($group->isDefault())
                                                         <span class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                            Original
+                                                            Paz
                                                         </span>
                                                     @endif
                                                 </div>
@@ -94,25 +94,17 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        @if($group->hasDrawn())
-                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                                🔒 Cerrado
-                                            </span>
-                                        @else
-                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                                ✓ Abierto
-                                            </span>
-                                        @endif
+                                        <span title="{{ $group->profile_edit_end_date->format('d/m/Y H:i') }}">
+                                            {{ $group->profile_edit_end_date->diffForHumans() }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                         <a href="{{ route('admin.family-groups.show', $group) }}" class="text-blue-600 hover:text-blue-900 mr-3">
                                             Ver
                                         </a>
-                                        @if(!$group->isDefault() && !$group->hasDrawn())
-                                            <a href="{{ route('admin.family-groups.edit', $group) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                                Editar
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('admin.family-groups.edit', $group) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                            Editar
+                                        </a>
                                         @if(!$group->isDefault() && $group->users_count == 0)
                                             <form action="{{ route('admin.family-groups.destroy', $group) }}" method="POST" class="inline">
                                                 @csrf

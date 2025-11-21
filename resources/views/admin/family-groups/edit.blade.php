@@ -7,6 +7,13 @@
                     <p class="text-gray-600 mt-2">Modifica la configuración de esta familia</p>
                 </div>
 
+                @if($familyGroup->hasDrawn())
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+                        <p class="font-bold">Modo de edición restringido</p>
+                        <p>Como el sorteo ya se ha realizado, solo puedes modificar la fecha límite para editar perfil.</p>
+                    </div>
+                @endif
+
                 @if($errors->any())
                     <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
                         <p class="font-bold">Errores de validación:</p>
@@ -28,7 +35,8 @@
                         </label>
                         <input type="text" name="name" id="name" required
                                value="{{ old('name', $familyGroup->name) }}"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">
                     </div>
 
                     <div>
@@ -38,7 +46,8 @@
                         <input type="text" name="slug" id="slug" required
                                value="{{ old('slug', $familyGroup->slug) }}"
                                pattern="[a-z0-9-_]+"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">
                         <p class="mt-1 text-sm text-gray-500">
                             URL actual: <code class="bg-gray-100 px-1 rounded">{{ $familyGroup->registration_url }}</code>
                         </p>
@@ -49,7 +58,8 @@
                             Descripción (Opcional)
                         </label>
                         <textarea name="description" id="description" rows="3"
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description', $familyGroup->description) }}</textarea>
+                                  {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">{{ old('description', $familyGroup->description) }}</textarea>
                     </div>
 
                     <hr class="my-6">
@@ -64,7 +74,8 @@
                         </label>
                         <input type="datetime-local" name="enable_draw_at" id="enable_draw_at" required
                                value="{{ old('enable_draw_at', $familyGroup->enable_draw_at ? $familyGroup->enable_draw_at->format('Y-m-d\TH:i') : '') }}"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">
                     </div>
 
                     <div>
@@ -73,7 +84,8 @@
                         </label>
                         <input type="datetime-local" name="reveal_date" id="reveal_date" required
                                value="{{ old('reveal_date', $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i') : '') }}"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                               {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">
                     </div>
 
                     <div>
@@ -89,7 +101,8 @@
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" name="is_active" value="1" 
                                    {{ old('is_active', $familyGroup->is_active) ? 'checked' : '' }}
-                                   class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                   {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                                   class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:opacity-50">
                             <span class="text-sm font-medium text-gray-700">Familia activa</span>
                         </label>
                         <p class="mt-1 text-sm text-gray-500">Desactivar una familia impedirá nuevos registros incluso si no tiene sorteo</p>
