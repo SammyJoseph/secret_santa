@@ -25,7 +25,7 @@
             </div>
             @endif
             <div class="p-4 lg:p-10">            
-                <div class="grid gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">
+                <div class="grid gap-4 lg:gap-8 grid-cols-1 lg:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">
                     <!-- Left Column: Secret Friend Placeholder -->
                     @if($isRevealed && $secretSanta)
                     <div class="flex flex-col items-center bg-white rounded-lg p-5 lg:p-6">
@@ -71,6 +71,13 @@
                         <div id="countdown" class="text-center text-gray-600 text-sm">
                             <!-- Countdown will be populated by JavaScript -->
                         </div>
+                    </div>
+                    @endif
+
+                    <!-- Slider of participants (mobile only) -->
+                    @if($isRevealed && $secretSanta)
+                    <div class="flex lg:hidden justify-center bg-white rounded-lg p-5 lg:p-6">
+                        @include('user._partials.profiles-slider')
                     </div>
                     @endif
 

@@ -15,6 +15,7 @@
 
         <!-- Styles -->
         @yield('css')
+        @stack('css')
         @livewireStyles
     </head>
     <body>
@@ -23,6 +24,7 @@
         </div>
 
         @yield('js')
+        @stack('js')
         @livewireScripts
     </body>
 </html>

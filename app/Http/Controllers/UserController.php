@@ -165,7 +165,7 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        $familyGroup = $user->familyGroup;
+        $familyGroup = $user->familyGroup->load('users');
 
         // Usar fechas de la familia del usuario
         $now = new \DateTime();
@@ -321,14 +321,11 @@ class UserController extends Controller
         }, $text);
     }
 
-    /**
-      * Save the profile image for the user.
-      */
-     private function saveProfileImage(User $user, $imageFile): void
-     {
-         try {
-             // Generate a unique filename (always .jpg)
-             $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
+    private function saveProfileImage(User $user, $imageFile): void
+    {
+        try {
+            // Generate a unique filename (always .jpg)
+            $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
 
              // Resize image to 600px width maintaining aspect ratio
              $manager = new ImageManager(new Driver());
@@ -344,5 +341,5 @@ class UserController extends Controller
              // If upload fails, leave profile_photo_path as null
              // You can log the error if needed
          }
-     }
+    }
 }
