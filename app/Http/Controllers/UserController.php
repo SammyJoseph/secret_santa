@@ -10,6 +10,7 @@ use App\Models\SecretSantaAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -74,6 +75,10 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
+        if (!$user->familyGroup->canEditProfile()) {
+            return back()->with('error', 'Ya no es posible editar tu perfil.');
+        }
+
         $validated = $request->validated();
 
         // Update user data (excluding DNI)
@@ -165,7 +170,7 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        $familyGroup = $user->familyGroup->load('users');
+        $familyGroup = $user->familyGroup->load(['users' => fn($q) => $q->inRandomOrder()]);
 
         // Usar fechas de la familia del usuario
         $now = new \DateTime();
@@ -189,11 +194,10 @@ class UserController extends Controller
             }
         }
 
-        // Format dates for JavaScript
         $revealDateJs = $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
-        $profileEditEndDateJs = $familyGroup->profile_edit_end_date ? $familyGroup->profile_edit_end_date->format('Y-m-d\TH:i:s') : null;
+        $profileEditEndDate = $familyGroup->profile_edit_end_date;
 
-        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'canEditProfile', 'profileEditEndDateJs', 'familyGroup'));
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'canEditProfile', 'profileEditEndDate', 'familyGroup'));
     }
 
     public function tempUpload(Request $request)

@@ -1,53 +1,56 @@
-<div class="flex flex-col items-center justify-center">
-    @include('user._partials.view-profiles-btn')
+@if($isRevealed && $secretSanta)
+<div class="flex lg:hidden justify-center mt-8">
+    <div class="flex flex-col items-center justify-center">
+        @include('user._partials.view-profiles-btn')
 
-    <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        
-        <!-- Botón CERRAR (Esquina superior derecha) -->
-        <button onclick="closeModal()" class="absolute top-4 right-4 text-white/60 hover:text-white z-50 p-2 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-
-        <!-- WRAPPER PRINCIPAL (Columna para imagen + puntos) -->
-        <div onclick="event.stopPropagation()" class="flex flex-col items-center w-full max-w-sm mx-4">
+        <div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity duration-300 opacity-0">
             
-            <!-- TARJETA DE IMAGEN -->
-            <div class="relative w-full aspect-[3/4] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            <!-- Botón CERRAR (Esquina superior derecha) -->
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-white/60 hover:text-white z-50 p-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- WRAPPER PRINCIPAL (Columna para imagen + puntos) -->
+            <div onclick="event.stopPropagation()" class="flex flex-col items-center w-full max-w-sm mx-4">
                 
-                <!-- TRACK -->
-                <div id="carousel-track" class="flex h-full transition-transform duration-500 ease-out touch-pan-y cursor-grab active:cursor-grabbing">
+                <!-- TARJETA DE IMAGEN -->
+                <div class="relative w-full aspect-[3/4] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10">
                     
-                    @foreach ($familyGroup->users as $user)
-                    <div class="w-full h-full flex-shrink-0 relative select-none">
-                        @php
-                            $profileSrc = asset('assets/images/profile.jpg');
-                            if ($user->funny_profile_photo_path) {
-                                $profileSrc = Storage::url($user->funny_profile_photo_path);
-                            } elseif ($user->profile_photo_path) {
-                                $profileSrc = Storage::url($user->profile_photo_path);
-                            }
-                        @endphp
-                        <img src="{{ $profileSrc }}"
-                             class="w-full h-full object-cover pointer-events-none" alt="Perfil de {{ $user->nickname ?: $user->name }}">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
-                        <div class="absolute bottom-0 left-0 w-full p-8 pb-10 text-white">
-                            <h2 class="text-3xl font-bold tracking-tight drop-shadow-md">{{ $user->nickname ?: $user->name }}</h2>
+                    <!-- TRACK -->
+                    <div id="carousel-track" class="flex h-full transition-transform duration-500 ease-out touch-pan-y cursor-grab active:cursor-grabbing">
+                        
+                        @foreach ($familyGroup->users as $user)
+                        <div class="w-full h-full flex-shrink-0 relative select-none">
+                            @php
+                                $profileSrc = asset('assets/images/profile.jpg');
+                                if ($user->funny_profile_photo_path) {
+                                    $profileSrc = Storage::url($user->funny_profile_photo_path);
+                                } elseif ($user->profile_photo_path) {
+                                    $profileSrc = Storage::url($user->profile_photo_path);
+                                }
+                            @endphp
+                            <img src="{{ $profileSrc }}"
+                                class="w-full h-full object-cover pointer-events-none" alt="Perfil de {{ $user->nickname ?: $user->name }}">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 w-full p-8 pb-10 text-white">
+                                <h2 class="text-3xl font-bold tracking-tight drop-shadow-md">{{ $user->nickname ?: $user->name }}</h2>
+                            </div>
                         </div>
+                        @endforeach
+
                     </div>
-                    @endforeach
-
                 </div>
-            </div>
 
-            <!-- PUNTOS DE NAVEGACIÓN -->
-            <div class="mt-6 flex justify-center space-x-1">
-                @foreach ($familyGroup->users as $index => $user)
-                    <button onclick="goToSlide({{ $index }})" class="dot w-2 h-2 rounded-full bg-gray-600 transition-all duration-300 hover:bg-gray-400"></button>
-                @endforeach
-            </div>
+                <!-- PUNTOS DE NAVEGACIÓN -->
+                <div class="mt-6 flex justify-center space-x-1">
+                    @foreach ($familyGroup->users as $index => $user)
+                        <button onclick="goToSlide({{ $index }})" class="dot w-2 h-2 rounded-full bg-gray-600 transition-all duration-300 hover:bg-gray-400"></button>
+                    @endforeach
+                </div>
 
+            </div>
         </div>
     </div>
 </div>
@@ -141,3 +144,4 @@
         }
     </script>
 @endpush
+@endif
