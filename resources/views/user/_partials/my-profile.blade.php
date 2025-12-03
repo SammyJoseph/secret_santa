@@ -91,7 +91,7 @@
                             </div>
                             <label class="cursor-pointer">
                                 <span class="focus:outline-none text-white text-xs py-1 px-3 rounded-full bg-[{{ $themeColor }}] hover:shadow-lg">Subir imagen referencial</span>
-                                <input type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*">
+                                <input @disabled(now()->gt($profileEditEndDate)) type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*">
                             </label>
                             <input type="hidden" name="temp_gift_image_{{ $index }}" id="temp-gift-image-{{ $index }}" value="{{ $tempGiftImageValue }}">
                         </div>
