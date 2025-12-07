@@ -83,12 +83,12 @@ class UserController extends Controller
 
         // Format dates for JavaScript (admin doesn't need edit limits)
         $revealDateJs = $familyGroup && $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
-        $profileEditEndDateJs = null;
+        $profileEditEndDate = $familyGroup->profile_edit_end_date;
 
         // Pass additional flag to indicate admin view
         $isAdminView = true;
 
-        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'profileEditEndDateJs', 'familyGroup', 'isAdminView'));
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'profileEditEndDate', 'familyGroup', 'isAdminView'));
     }
 
     /**
