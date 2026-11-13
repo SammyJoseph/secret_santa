@@ -17,7 +17,7 @@
             <div class="grid  gap-8 grid-cols-1">
                 <div class="flex flex-col" x-data="{ showModal: false, modalImage: '' }">
                     <div class="flex flex-col sm:flex-row items-center">
-                        <h2 class="font-semibold text-lg mr-auto">Regístrate para participar en "El Amigo Secreto Familiar{{ !empty($familyGroup?->name) ? ' de ' . $familyGroup->name : '' }}" de esta Navidad {{ date('Y') }}</h2>
+                        <h2 class="font-semibold text-lg mr-auto">Regístrate para participar en "El Amigo Secreto {{ !empty($familyGroup?->name) ? ' de ' . $familyGroup->name : '' }}" de esta Navidad {{ date('Y') }}</h2>
                         <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
                     </div>
                     <div>
@@ -55,12 +55,7 @@
                                         @enderror
                                     </div>
                                     <div class="space-y-2 w-full text-xs">
-                                        <div class="flex justify-between items-center py-2">
-                                            <label class="font-semibold text-gray-600">Número de Celular <span class="text-red-500">*</span></label>
-                                            <button type="button" id="btn-toggle-dni-link" class="text-xs text-amber-600 hover:text-amber-800 underline font-medium">
-                                                ¿Participaste el año pasado?
-                                            </button>
-                                        </div>
+                                        <label class="font-semibold text-gray-600 py-2">Teléfono <span class="text-red-500">*</span></label>
                                         <input placeholder="Ej: 987654321" required type="tel" name="phone" id="phone" value="{{ old('phone') }}" minlength="9" maxlength="9" pattern="\d{9}" title="Ingresar 9 dígitos de celular"
                                             class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"/>
                                         <input type="hidden" name="migrated_dni" id="migrated_dni" value="{{ old('migrated_dni') }}">
@@ -305,19 +300,9 @@
         const registerForm = document.querySelector('form[action="{{ route('user.register') }}"]');
         const submitBtn = registerForm ? registerForm.querySelector('button[type="submit"]') : null;
 
-        const btnToggleDniLink = document.getElementById('btn-toggle-dni-link');
         const dniLegacyContainer = document.getElementById('dni-legacy-container');
         const legacyDniInput = document.getElementById('legacy-dni-input');
         const btnSearchDni = document.getElementById('btn-search-dni');
-
-        if (btnToggleDniLink && dniLegacyContainer) {
-            btnToggleDniLink.addEventListener('click', () => {
-                dniLegacyContainer.classList.toggle('hidden');
-                if (!dniLegacyContainer.classList.contains('hidden') && legacyDniInput) {
-                    legacyDniInput.focus();
-                }
-            });
-        }
 
         let lastCheckedVal = '';
 
