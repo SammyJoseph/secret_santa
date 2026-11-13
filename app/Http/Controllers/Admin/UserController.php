@@ -57,30 +57,82 @@ class UserController extends Controller
             }
         }
 
-        $query = User::with(['secretSantaAssignment.receiver', 'familyGroup']);
+        $query = User::query();
 
-        // Filtrar por año
-        if ($selectedYear !== 'all') {
+        // Filtrar por familia si se especifica
+        if (!empty($familyGroupId)) {
+            $query->where(function ($fq) use ($familyGroupId) {
+                $fq->where('family_group_id', $familyGroupId)
+                   ->orWhereHas('familyGroups', fn($gq) => $gq->where('family_groups.id', $familyGroupId));
+            });
+        } elseif ($selectedYear !== 'all') {
+            // Filtrar por año si no hay familia específica
             $query->where(function ($q) use ($selectedYear) {
-                $q->whereHas('familyGroup', function ($fq) use ($selectedYear) {
+                $q->whereHas('familyGroups', function ($gq) use ($selectedYear) {
+                    $gq->where('year', $selectedYear);
+                })->orWhereHas('familyGroup', function ($fq) use ($selectedYear) {
                     $fq->where('year', $selectedYear);
-                })->orWhere(function ($oq) use ($selectedYear) {
-                    $oq->whereNull('family_group_id')
-                       ->whereYear('created_at', $selectedYear);
                 })->orWhereHas('secretSantaAssignments', function ($aq) use ($selectedYear) {
                     $aq->whereHas('familyGroup', function ($afq) use ($selectedYear) {
                         $afq->where('year', $selectedYear);
                     });
+                })->orWhere(function ($oq) use ($selectedYear) {
+                    $oq->whereNull('family_group_id')
+                       ->whereYear('created_at', $selectedYear);
                 });
             });
         }
 
-        // Filtrar por familia si se especifica
-        if (!empty($familyGroupId)) {
-            $query->where('family_group_id', $familyGroupId);
-        }
+        $query->with([
+            'familyGroup',
+            'familyGroups',
+            'secretSantaAssignments.receiver',
+            'secretSantaAssignments.familyGroup',
+        ]);
 
         $users = $query->orderBy('updated_at', 'desc')->get();
+
+        foreach ($users as $user) {
+            if (!empty($familyGroupId)) {
+                $contextFamily = $familyGroups->firstWhere('id', (int) $familyGroupId) ?? FamilyGroup::find($familyGroupId);
+            } elseif ($selectedYear !== 'all') {
+                $contextFamily = $user->familyGroups->firstWhere('year', $selectedYear);
+                if (!$contextFamily && $user->familyGroup && $user->familyGroup->year === $selectedYear) {
+                    $contextFamily = $user->familyGroup;
+                }
+                if (!$contextFamily) {
+                    $assignYear = $user->secretSantaAssignments->first(fn($a) => $a->familyGroup && $a->familyGroup->year === $selectedYear);
+                    if ($assignYear) {
+                        $contextFamily = $assignYear->familyGroup;
+                    }
+                }
+            } else {
+                $contextFamily = $user->familyGroup ?? $user->familyGroups->sortByDesc('year')->first();
+            }
+
+            $user->setRelation('familyGroup', $contextFamily);
+
+            $contextAssignment = null;
+            if ($contextFamily) {
+                $contextAssignment = $user->secretSantaAssignments->firstWhere('family_group_id', $contextFamily->id);
+            } elseif ($selectedYear !== 'all') {
+                $contextAssignment = $user->secretSantaAssignments->first(fn($a) => $a->familyGroup && $a->familyGroup->year === $selectedYear);
+            } else {
+                $contextAssignment = $user->secretSantaAssignments->first();
+            }
+            $user->setRelation('secretSantaAssignment', $contextAssignment);
+
+            $registeredAt = null;
+            if ($contextFamily) {
+                if ($contextFamily->year < (int) date('Y')) {
+                    $registeredAt = $user->created_at;
+                } else {
+                    $pivot = $user->familyGroups->firstWhere('id', $contextFamily->id)?->pivot;
+                    $registeredAt = $pivot?->created_at ?? $user->created_at;
+                }
+            }
+            $user->registered_at = $registeredAt ?? $user->created_at;
+        }
 
         return view('admin.users.index', compact('users', 'familyGroups', 'availableYears', 'selectedYear', 'familyGroupId'));
     }
@@ -213,9 +265,16 @@ class UserController extends Controller
     /**
      * Show user profile to admin (read-only)
      */
-    public function showProfile(User $user)
+    public function showProfile(Request $request, User $user)
     {
-        $familyGroup = $user->familyGroup;
+        $familyGroupId = $request->get('family_group_id');
+        $familyGroup = null;
+        if ($familyGroupId) {
+            $familyGroup = FamilyGroup::find($familyGroupId);
+        }
+        if (!$familyGroup) {
+            $familyGroup = $user->familyGroup;
+        }
         
         // Determine if info is revealed for this user
         $isRevealed = $familyGroup && $familyGroup->isRevealed();
@@ -246,11 +305,14 @@ class UserController extends Controller
         // Format dates for JavaScript (admin doesn't need edit limits)
         $revealDateJs = $familyGroup && $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
         $profileEditEndDate = $familyGroup ? $familyGroup->profile_edit_end_date : null;
+        $userFamilies = $user->familyGroups()->orderBy('year', 'desc')->get();
+        $isPastYear = $familyGroup && $familyGroup->year < (int) date('Y');
+        $canEditProfile = false;
 
         // Pass additional flag to indicate admin view
         $isAdminView = true;
 
-        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'profileEditEndDate', 'familyGroup', 'isAdminView'));
+        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'profileEditEndDate', 'familyGroup', 'userFamilies', 'isPastYear', 'canEditProfile', 'isAdminView'));
     }
 
     /**
@@ -258,9 +320,73 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $user->load(['familyGroup', 'allGiftSuggestions.familyGroup']);
+        $user->load(['familyGroup', 'familyGroups', 'allGiftSuggestions.familyGroup']);
+
+        // Años disponibles ordenados de más reciente a más antiguo
+        $availableYears = FamilyGroup::select('year')
+            ->distinct()
+            ->whereNotNull('year')
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->map(fn($y) => (int) $y)
+            ->toArray();
+
+        $currentYear = (int) date('Y');
+        if (empty($availableYears)) {
+            $availableYears = [$currentYear];
+        }
+
+        // Familias con sus participantes cargados para el filtrado dinámico
+        $familyGroups = FamilyGroup::with(['users' => function ($q) {
+            $q->select('users.id', 'users.name', 'users.nickname', 'users.phone', 'users.dni', 'users.family_id', 'users.profile_photo_path');
+        }])->orderBy('name', 'asc')->get();
+
+        // Determinar año y familia por defecto
+        $defaultYear = $user->familyGroup?->year ?? ($availableYears[0] ?? $currentYear);
+        $defaultFamilyId = $user->family_group_id;
+
+        // Si la familia por defecto no pertenece al año por defecto, seleccionar la primera de ese año
+        $familyBelongsToYear = $familyGroups->first(fn($fg) => $fg->id == $defaultFamilyId && (int)$fg->year === (int)$defaultYear);
+        if (!$familyBelongsToYear) {
+            $firstInYear = $familyGroups->first(fn($fg) => (int)$fg->year === (int)$defaultYear);
+            $defaultFamilyId = $firstInYear ? $firstInYear->id : ($familyGroups->first()?->id ?? null);
+        }
+
+        // Estructura serializada para consumo ágil en JavaScript
+        $familyGroupsData = $familyGroups->map(function ($fg) {
+            return [
+                'id' => $fg->id,
+                'name' => $fg->name,
+                'year' => (int) $fg->year,
+                'users' => $fg->users->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->nickname ?: $u->name,
+                        'phone' => $u->phone,
+                        'dni' => $u->dni,
+                        'family_id' => $u->family_id,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+        // Familiares actuales del usuario
+        $allFamilyMembers = $user->getAllFamilyMembers();
+        $existingFamilyIds = $allFamilyMembers->pluck('id')->push($user->id)->values()->toArray();
+
         $users = User::with('secretSantaAssignment.receiver')->orderBy('created_at', 'desc')->get();
-        return view('admin.users.edit', compact('user', 'users'));
+
+        return view('admin.users.edit', compact(
+            'user',
+            'users',
+            'availableYears',
+            'familyGroups',
+            'familyGroupsData',
+            'defaultYear',
+            'defaultFamilyId',
+            'allFamilyMembers',
+            'existingFamilyIds'
+        ));
     }
 
     /**

@@ -159,7 +159,7 @@
                                 @endif
                                 <td class="px-6 py-4">
                                     @php
-                                        $allFamilyMembers = $user->getAllFamilyMembers();
+                                        $allFamilyMembers = $user->getAllFamilyMembers($user->familyGroup?->id);
                                     @endphp
                                     @if($allFamilyMembers->count() > 0)
                                         <div class="space-y-1">
@@ -178,12 +178,12 @@
                                     @endif
                                 </td>                                
                                 <td class="px-6 py-4">
-                                    {{ $user->created_at->format('d/m/Y H:i') }}
+                                    {{ ($user->registered_at ?? $user->created_at)->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex space-x-2 items-center">
                                         @if(!$user->secretSantaAssignment)
-                                            <a href="{{ route('admin.users.profile', $user) }}" title="Ver perfil" class="text-blue-600 hover:text-blue-800">
+                                            <a href="{{ route('admin.users.profile', array_filter(['user' => $user->id, 'family_group_id' => $user->familyGroup?->id])) }}" title="Ver perfil" class="text-blue-600 hover:text-blue-800">
                                                 <svg class="w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#2563eb"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>
                                             </a>
                                         @else

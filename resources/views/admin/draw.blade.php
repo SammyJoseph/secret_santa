@@ -4,82 +4,110 @@
             <div class="container">
                 <h1 class="text-white text-3xl md:text-5xl font-bold mb-6 md:mb-10">🎅 Amigo Secreto 🎄</h1>
                 
-                <!-- Selector de Familia -->
+                <!-- Selector de Año y Familia -->
                 <div class="mb-8 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                    <form method="GET" action="{{ route('admin.draw') }}" class="flex flex-col items-center gap-4">
-                        <label for="family_group_select" class="text-white font-medium text-lg">
-                            Seleccionar Familia:
-                        </label>
-                        <select name="family_group_id" id="family_group_select"
-                                onchange="this.form.submit()"
-                                class="flex-1 max-w-full rounded-lg border-white/30 bg-white/90 text-gray-900 font-medium shadow-lg text-sm">
-                            @foreach($familyGroups as $group)
-                                <option value="{{ $group->id }}" {{ $selectedFamilyGroupId == $group->id ? 'selected' : '' }}>
-                                    {{ $group->name }}
-                                    ({{ $group->users_count }} usuarios)
-                                    @if($group->hasDrawn()) - ✓ Sorteado @endif
-                                </option>
-                            @endforeach
-                        </select>
+                    <form method="GET" action="{{ route('admin.draw') }}" class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label for="year_select" class="text-white font-medium text-sm sm:text-base whitespace-nowrap sr-only">
+                                Año:
+                            </label>
+                            <select name="year" id="year_select"
+                                    onchange="document.getElementById('family_group_select').value = ''; this.form.submit();"
+                                    class="rounded-lg border-white/30 bg-white/90 text-gray-900 font-bold shadow-lg text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-400">
+                                @foreach($availableYears as $yr)
+                                    <option value="{{ $yr }}" {{ (string)$selectedYear === (string)$yr ? 'selected' : '' }}>
+                                        Año {{ $yr }}
+                                    </option>
+                                @endforeach
+                                <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Todos los años</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <label for="family_group_select" class="text-white font-medium text-sm sm:text-base whitespace-nowrap sr-only">
+                                Familia:
+                            </label>
+                            <select name="family_group_id" id="family_group_select"
+                                    onchange="this.form.submit()"
+                                    class="flex-1 sm:min-w-[280px] rounded-lg border-white/30 bg-white/90 text-gray-900 font-medium shadow-lg text-sm py-2 px-3 focus:ring-2 focus:ring-indigo-400">
+                                @forelse($familyGroups as $group)
+                                    <option value="{{ $group->id }}" {{ (string)$selectedFamilyGroupId === (string)$group->id ? 'selected' : '' }}>
+                                        {{ $group->name }} @if($selectedYear === 'all')(Año {{ $group->year }})@endif
+                                        ({{ $group->users_count }} {{ Str::plural('usuario', $group->users_count) }})
+                                        @if($group->hasDrawn()) - ✓ Sorteado @endif
+                                    </option>
+                                @empty
+                                    <option value="">No hay familias en este año</option>
+                                @endforelse
+                            </select>
+                        </div>
                     </form>
                     
+                    @if($selectedFamilyGroup)
                     <div class="mt-4 text-white text-sm space-y-1">
-                        <p><strong>Familia:</strong> {{ $selectedFamilyGroup->name }}</p>
+                        <p><strong>Familia:</strong> {{ $selectedFamilyGroup->name }} @if($selectedYear === 'all' || $selectedFamilyGroup->year != date('Y'))<span class="text-xs bg-white/20 px-2 py-0.5 rounded-full ml-1 font-mono">Año {{ $selectedFamilyGroup->year }}</span>@endif</p>
                         <p><strong>Estado:</strong>
                             @if($hasAssignments)
-                                <span class="text-green-300">✓ Sorteo realizado</span>
+                                <span class="text-green-300 font-semibold">✓ Sorteo realizado</span>
                             @elseif($selectedFamilyGroup->canDraw())
-                                <span class="text-blue-300">Listo para sortear</span>
+                                <span class="text-blue-300 font-semibold">Listo para sortear</span>
                             @else
-                                <span class="text-yellow-300">Esperando fecha de sorteo</span>
+                                <span class="text-yellow-300 font-semibold">Esperando fecha de sorteo</span>
                             @endif
                         </p>
                         <p><strong>Registro:</strong>
                             @if($hasAssignments)
-                                <span class="text-red-300">🔒 Cerrado</span>
+                                <span class="text-red-300 font-semibold">🔒 Cerrado</span>
                             @else
-                                <span class="text-green-300">✓ Abierto</span>
+                                <span class="text-green-300 font-semibold">✓ Abierto</span>
                             @endif
                         </p>
                     </div>
-                </div>
-
-                @if($hasAssignments)
-                    <div class="text-center">
-                        <p class="text-white text-xl mb-8 drop-shadow-md">Todos los participantes de {{ $selectedFamilyGroup->name }} han sido asignados correctamente.</p>
+                    @else
+                    <div class="mt-4 text-white text-center text-sm py-2">
+                        No hay ninguna familia registrada para el año {{ $selectedYear }}.
                     </div>
-                @else
-                    @php
-                        $currentTime = now();
-                        $enableDrawTime = $selectedFamilyGroup->enable_draw_at;
-                        $isEnabled = $enableDrawTime ? $currentTime->gte($enableDrawTime) : false;
-                    @endphp
-                    <button class="btn-sortear text-xl px-8 py-5 {{ $isEnabled ? '' : 'disabled' }}"
-                            onclick="{{ $isEnabled ? 'iniciarSorteo()' : '' }}"
-                            {{ $isEnabled ? '' : 'disabled' }}>
-                        🎁 Iniciar Sorteo para {{ $selectedFamilyGroup->name }}
-                    </button>
-                    
-                    @if(!$isEnabled && $enableDrawTime)
-                        <p class="text-white text-center mt-4">
-                            El sorteo se habilitará el {{ $enableDrawTime->format('d/m/Y H:i') }}
-                        </p>
                     @endif
-                @endif
-
-                <div class="text-center mt-12">
-                    <ul class="list-none p-0 grid grid-cols-3 md:grid-cols-6 gap-4 max-w-6xl mx-auto participant-grid">
-                        @foreach($users as $user)
-                            <li class="flex flex-col items-center bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20 shadow-lg participant-card {{ $hasAssignments ? 'completed' : '' }}">
-                                <img src="{{ $user->profile_photo_url }}" class="w-16 h-16 rounded-full mb-2 object-cover border-2 border-white/30" alt="{{ $user->name }}">
-                                <span class="text-white text-sm font-medium drop-shadow-md text-center">{{ $user->name }}</span>
-                                @if($hasAssignments)
-                                    <span class="text-green-400 text-xl font-bold mt-1 animate-pulse success-check">✓</span>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
                 </div>
+
+                @if($selectedFamilyGroup)
+                    @if($hasAssignments)
+                        <div class="text-center">
+                            <p class="text-white text-xl mb-8 drop-shadow-md">Todos los participantes de {{ $selectedFamilyGroup->name }} han sido asignados correctamente.</p>
+                        </div>
+                    @else
+                        @php
+                            $currentTime = now();
+                            $enableDrawTime = $selectedFamilyGroup->enable_draw_at;
+                            $isEnabled = $enableDrawTime ? $currentTime->gte($enableDrawTime) : false;
+                        @endphp
+                        <button class="btn-sortear text-xl px-8 py-5 {{ $isEnabled ? '' : 'disabled' }}"
+                                onclick="{{ $isEnabled ? 'iniciarSorteo()' : '' }}"
+                                {{ $isEnabled ? '' : 'disabled' }}>
+                            🎁 Iniciar Sorteo para {{ $selectedFamilyGroup->name }}
+                        </button>
+                        
+                        @if(!$isEnabled && $enableDrawTime)
+                            <p class="text-white text-center mt-4">
+                                El sorteo se habilitará el {{ $enableDrawTime->format('d/m/Y H:i') }}
+                            </p>
+                        @endif
+                    @endif
+
+                    <div class="text-center mt-12">
+                        <ul class="list-none p-0 grid grid-cols-3 md:grid-cols-6 gap-4 max-w-6xl mx-auto participant-grid">
+                            @foreach($users as $user)
+                                <li class="flex flex-col items-center bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20 shadow-lg participant-card {{ $hasAssignments ? 'completed' : '' }}">
+                                    <img src="{{ $user->profile_photo_url }}" class="w-16 h-16 rounded-full mb-2 object-cover border-2 border-white/30" alt="{{ $user->name }}">
+                                    <span class="text-white text-sm font-medium drop-shadow-md text-center">{{ $user->name }}</span>
+                                    @if($hasAssignments)
+                                        <span class="text-green-400 text-xl font-bold mt-1 animate-pulse success-check">✓</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
 
             <div class="shuffle-container" id="shuffleContainer"></div>
@@ -257,7 +285,7 @@
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify({
-                            family_group_id: {{ $selectedFamilyGroupId }}
+                            family_group_id: {{ $selectedFamilyGroupId ?? 'null' }}
                         })
                     })
                     .then(response => {

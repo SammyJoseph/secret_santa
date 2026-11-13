@@ -30,7 +30,7 @@
                             <div class="form">
                                 <div class="md:flex flex-row md:space-x-4 w-full text-xs mt-6">
                                     <div class="space-y-2 w-full text-xs">
-                                        <label class="font-semibold text-gray-600 py-2">Celular o DNI</label>
+                                        <label class="font-semibold text-gray-600 py-2">Teléfono</label>
                                         <input placeholder="Ej: 987654321 o DNI" class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400" required="required"
                                             type="text" name="dni" id="dni" value="{{ old('dni') }}" autofocus>
                                     </div>

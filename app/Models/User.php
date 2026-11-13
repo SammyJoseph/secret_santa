@@ -102,12 +102,24 @@ class User extends Authenticatable
         return $this->belongsToMany(FamilyGroup::class, 'family_group_user')->withTimestamps();
     }
 
-    public function getAllFamilyMembers()
+    public function getAllFamilyMembers($familyGroupId = null)
     {
-        if ($this->family_id) {
-            return self::where('family_id', $this->family_id)->where('id', '!=', $this->id)->get();
+        if (!$this->family_id) {
+            return collect();
         }
-        return collect();
+
+        $query = self::where('family_id', $this->family_id)->where('id', '!=', $this->id);
+
+        if ($familyGroupId) {
+            $query->where(function ($q) use ($familyGroupId) {
+                $q->where('family_group_id', $familyGroupId)
+                  ->orWhereHas('familyGroups', function ($fgQuery) use ($familyGroupId) {
+                      $fgQuery->where('family_groups.id', $familyGroupId);
+                  });
+            });
+        }
+
+        return $query->get();
     }
 
     public function isFamilyWith(User $user)

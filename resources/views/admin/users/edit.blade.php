@@ -21,7 +21,7 @@
                         @enderror
 
                         <h1 class="mt-3 mb-1 text-center text-xl font-bold leading-8 text-gray-900">{{ $user->name }}</h1>
-                        <h3 class="font-lg text-semibold text-center leading-6 text-gray-600">DNI: {{ $user->dni }}</h3>
+                        <h3 class="font-lg text-semibold text-center leading-6 text-gray-600">{{ $user->phone ? 'Teléfono: ' . $user->phone : ($user->dni ? 'DNI: ' . $user->dni : '') }}</h3>
                         <div class="mt-4">
                             <label for="nickname" class="block text-sm font-medium text-gray-700">Nickname</label>
                             <input type="text" id="nickname" name="nickname" value="{{ old('nickname', $user->nickname) }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#F8B229] focus:border-[#F8B229]">
@@ -101,51 +101,85 @@
 
                 <!-- Columna Derecha: Gestión de Familiares -->
                 <div class="rounded-lg border bg-white px-4 py-8 shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Grupo Familiar Interno</h3>
+                    <p class="text-xs text-gray-500 mb-5">
+                        Excluye a los miembros seleccionados para que no puedan regalarse entre sí en el sorteo de su familia general.
+                    </p>
+
                     {{-- Formulario para agregar familiares --}}
-                    <form method="POST" action="{{ route('admin.users.assign-family', $user) }}" class="mb-6">
+                    <form method="POST" action="{{ route('admin.users.assign-family', $user) }}" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                         @csrf
-                        <h3 class="text-lg font-semibold mb-2">Agregar Familiar</h3>
-                        <select name="family_member_id" class="text-sm border border-gray-300 rounded px-2 py-1 mr-2" required>
-                            <option value="">Seleccionar usuario</option>
-                            @php
-                                $allFamilyMembers = $user->getAllFamilyMembers();
-                                $familyIds = $allFamilyMembers->pluck('id')->push($user->id);
-                                if ($user->family_id) {
-                                    $familyIds = $familyIds->merge($users->where('family_id', $user->family_id)->pluck('id'));
-                                }
-                            @endphp
-                            @foreach($users->whereNotIn('id', $familyIds) as $potentialFamily)
-                                <option value="{{ $potentialFamily->id }}">{{ $potentialFamily->name }} ({{ $potentialFamily->dni }})</option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">+</button>
+                        <h4 class="text-sm font-semibold text-gray-800 mb-3">Agregar Familiar al Grupo</h4>
+
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="select-year" class="block text-xs font-semibold text-gray-600 mb-1">1. Año</label>
+                                    <select id="select-year" class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-[#F8B229] focus:ring-[#F8B229]">
+                                        @foreach($availableYears as $year)
+                                            <option value="{{ $year }}" {{ (int)$defaultYear === (int)$year ? 'selected' : '' }}>
+                                                Año {{ $year }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="select-family" class="block text-xs font-semibold text-gray-600 mb-1">2. Familia General</label>
+                                    <select id="select-family" name="family_group_id" class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-[#F8B229] focus:ring-[#F8B229]">
+                                        <!-- Se puebla dinámicamente con JS -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="select-user" class="block text-xs font-semibold text-gray-600 mb-1">3. Participante a vincular</label>
+                                <div class="flex space-x-2">
+                                    <select id="select-user" name="family_member_id" class="flex-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-[#F8B229] focus:ring-[#F8B229]" required>
+                                        <option value="">-- Seleccionar participante --</option>
+                                        <!-- Se puebla dinámicamente con JS -->
+                                    </select>
+                                    <button type="submit" id="btn-add-family" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-semibold text-sm transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                        + Agregar
+                                    </button>
+                                </div>
+                                <p id="no-candidates-msg" class="text-xs text-gray-400 italic mt-1.5 hidden">
+                                    No hay otros participantes disponibles para agregar en esta familia.
+                                </p>
+                            </div>
+                        </div>
                     </form>
 
-                    {{-- Lista de familiares --}}
-                    @if($allFamilyMembers->count() > 0)
-                        <div>
-                            <h3 class="text-lg font-semibold mb-2">Grupo Familiar</h3>
-                            <div class="space-y-1">
+                    {{-- Lista de familiares actuales --}}
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-800 mb-2">Miembros actuales del grupo familiar</h4>
+                        @if($allFamilyMembers->count() > 0)
+                            <div class="space-y-2">
                                 @foreach($allFamilyMembers as $familyMember)
-                                    <div class="flex items-center justify-between bg-blue-50 p-2 rounded text-sm">
-                                        <div class="flex items-center">
-                                            <img class="w-6 h-6 rounded-full object-cover mr-2" src="{{ $familyMember->profile_photo_url }}" alt="Avatar de {{ $familyMember->name }}">
+                                    <div class="flex items-center justify-between bg-blue-50/70 border border-blue-100 p-2.5 rounded-lg text-sm">
+                                        <div class="flex items-center space-x-3">
+                                            <img class="w-8 h-8 rounded-full object-cover" src="{{ $familyMember->profile_photo_url }}" alt="Avatar de {{ $familyMember->name }}">
                                             <div>
-                                                <div class="font-medium">{{ $familyMember->name }}</div>
-                                                <div class="text-gray-500 text-xs">{{ $familyMember->dni }}</div>
+                                                <div class="font-semibold text-gray-900">{{ $familyMember->name }}</div>
+                                                <div class="text-gray-500 text-xs font-mono">{{ $familyMember->phone ?? $familyMember->dni }}</div>
                                             </div>
                                         </div>
-                                        <form method="POST" action="{{ route('admin.users.remove-family', $user) }}" class="ml-1" onsubmit="return confirm('¿Estás seguro de que quieres remover este familiar del grupo?')">
+                                        <form method="POST" action="{{ route('admin.users.remove-family', $user) }}" class="ml-2" onsubmit="return confirm('¿Estás seguro de que quieres remover a {{ $familyMember->name }} de este grupo familiar?')">
                                             @csrf
                                             @method('DELETE')
                                             <input type="hidden" name="family_member_id" value="{{ $familyMember->id }}">
-                                            <button type="submit" class="text-red-600 hover:text-red-900 text-sm font-bold">×</button>
+                                            <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-md text-sm font-bold transition-colors" title="Remover familiar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
                                         </form>
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
-                    @endif
+                        @else
+                            <p class="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
+                                Este usuario no tiene familiares asignados en un grupo interno aún.
+                            </p>
+                        @endif
+                    </div>
                 </div>
 
                 <!-- Image Modal -->
@@ -214,6 +248,82 @@
                 this.textContent = 'Copiar Enlace';
             }, 2000);
         });
+
+        // Filtrado dinámico de familias y participantes para grupo familiar interno
+        const familyGroupsData = @json($familyGroupsData);
+        const existingFamilyIds = @json($existingFamilyIds);
+        const currentUserId = {{ $user->id }};
+        const defaultFamilyId = {{ $defaultFamilyId ? (int)$defaultFamilyId : 'null' }};
+
+        const yearSelect = document.getElementById('select-year');
+        const familySelect = document.getElementById('select-family');
+        const userSelect = document.getElementById('select-user');
+        const btnAddFamily = document.getElementById('btn-add-family');
+        const noCandidatesMsg = document.getElementById('no-candidates-msg');
+
+        function updateFamilies() {
+            if (!yearSelect || !familySelect) return;
+            const selectedYear = parseInt(yearSelect.value);
+            const families = familyGroupsData.filter(fg => parseInt(fg.year) === selectedYear);
+            
+            familySelect.innerHTML = '';
+            families.forEach(fg => {
+                const opt = document.createElement('option');
+                opt.value = fg.id;
+                opt.textContent = fg.name;
+                familySelect.appendChild(opt);
+            });
+
+            if (defaultFamilyId && families.some(fg => fg.id === defaultFamilyId)) {
+                familySelect.value = defaultFamilyId;
+            }
+
+            updateUsers();
+        }
+
+        function updateUsers() {
+            if (!familySelect || !userSelect) return;
+            const selectedFamilyId = parseInt(familySelect.value);
+            const family = familyGroupsData.find(fg => fg.id === selectedFamilyId);
+            
+            userSelect.innerHTML = '<option value="">-- Seleccionar participante --</option>';
+            
+            if (!family || !family.users || family.users.length === 0) {
+                userSelect.disabled = true;
+                if (btnAddFamily) btnAddFamily.disabled = true;
+                if (noCandidatesMsg) noCandidatesMsg.classList.remove('hidden');
+                return;
+            }
+
+            const candidates = family.users.filter(u => u.id !== currentUserId && !existingFamilyIds.includes(u.id));
+
+            if (candidates.length === 0) {
+                userSelect.disabled = true;
+                if (btnAddFamily) btnAddFamily.disabled = true;
+                if (noCandidatesMsg) noCandidatesMsg.classList.remove('hidden');
+            } else {
+                userSelect.disabled = false;
+                if (noCandidatesMsg) noCandidatesMsg.classList.add('hidden');
+                candidates.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    const doc = u.phone || u.dni || 'Sin Tel/DNI';
+                    opt.textContent = `${u.name} (${doc})`;
+                    userSelect.appendChild(opt);
+                });
+                if (btnAddFamily) btnAddFamily.disabled = !userSelect.value;
+            }
+        }
+
+        if (yearSelect && familySelect && userSelect) {
+            yearSelect.addEventListener('change', updateFamilies);
+            familySelect.addEventListener('change', updateUsers);
+            userSelect.addEventListener('change', () => {
+                if (btnAddFamily) btnAddFamily.disabled = !userSelect.value;
+            });
+
+            updateFamilies();
+        }
     </script>
     @endsection
 </x-app-layout>
