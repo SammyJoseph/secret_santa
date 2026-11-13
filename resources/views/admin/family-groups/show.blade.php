@@ -156,6 +156,50 @@
                     </div>
                 </div>
 
+                {{-- Miembros de esta Familia (Lista tipo toasts de colores - Solo Lectura) --}}
+                <div class="bg-gray-50 p-6 rounded-lg mb-6 border border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <span>👥</span> Miembros de la Familia
+                            <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full">
+                                {{ $familyGroup->users->count() }}
+                            </span>
+                        </h3>
+                    </div>
+
+                    @if($familyGroup->users->isNotEmpty())
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            @foreach($familyGroup->users as $member)
+                                @php
+                                    $hash = abs(crc32($member->dni . $member->name));
+                                    $hue = $hash % 360;
+                                    $bgColor = "hsl({$hue}, 85%, 95%)";
+                                    $textColor = "hsl({$hue}, 85%, 25%)";
+                                    $borderColor = "hsl({$hue}, 60%, 82%)";
+                                    $profileSrc = $member->profile_photo_url;
+                                @endphp
+                                <div class="flex items-center space-x-3 p-2.5 rounded-xl border shadow-sm transition hover:shadow"
+                                     style="background-color: {{ $bgColor }}; border-color: {{ $borderColor }};">
+                                    <img src="{{ $profileSrc }}" alt="{{ $member->name }}" class="w-10 h-10 rounded-full object-cover border-2 bg-white shadow-sm" style="border-color: {{ $borderColor }};">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-semibold truncate" style="color: {{ $textColor }};">
+                                            {{ $member->nickname ?: $member->name }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 font-mono">
+                                            DNI: {{ $member->dni }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-6 text-gray-500 text-sm">
+                            <span class="text-2xl block mb-1">🎁</span>
+                            Aún no hay miembros registrados en esta familia.
+                        </div>
+                    @endif
+                </div>
+
                 <div class="flex justify-between">
                     <div class="space-x-2">
                         @if(!$familyGroup->isDefault() && !$familyGroup->hasDrawn())

@@ -2,28 +2,62 @@
     <div class="py-1 sm:py-12" x-data="{ showModal: false, modalImage: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="p-3 sm:p-6 bg-white shadow-md sm:rounded-lg">
-                <!-- Filtro por Familia -->
-                <div class="mb-6 flex items-center gap-4">
-                    <form method="GET" action="{{ route('admin.users.index') }}" class="flex items-center gap-3">
-                        <label for="family_filter" class="text-sm font-medium text-gray-700 sr-only">
-                            Filtrar por Familia:
-                        </label>
-                        <select name="family_group_id" id="family_filter"
-                                onchange="this.form.submit()"
-                                class="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Todas las familias</option>
-                            @foreach($familyGroups as $group)
-                                <option value="{{ $group->id }}" {{ request('family_group_id') == $group->id ? 'selected' : '' }}>
-                                    {{ $group->name }} ({{ $group->users_count }} usuarios)
-                                </option>
-                            @endforeach
-                        </select>
-                    </form>
-                    @if(request('family_group_id'))
-                        <a href="{{ route('admin.users.index') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                            Limpiar filtro
-                        </a>
-                    @endif
+                @if(session('updated'))
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm" role="alert">
+                        <p class="font-medium">{{ session('updated') }}</p>
+                    </div>
+                @endif
+                @if(session('success'))
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm" role="alert">
+                        <p class="font-medium">{{ session('success') }}</p>
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-sm" role="alert">
+                        <p class="font-medium">{{ session('error') }}</p>
+                    </div>
+                @endif
+
+                <!-- Filtros por Año y Familia, y Botón Crear Usuario -->
+                <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-wrap items-center gap-3">
+                            <label for="year_filter" class="sr-only">Filtrar por Año</label>
+                            <select name="year" id="year_filter"
+                                    onchange="document.getElementById('family_filter').value = ''; this.form.submit();"
+                                    class="rounded-lg border-gray-300 py-1.5 px-3 text-sm font-semibold text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @foreach($availableYears as $yr)
+                                    <option value="{{ $yr }}" {{ (string)$selectedYear === (string)$yr ? 'selected' : '' }}>
+                                        Año {{ $yr }}
+                                    </option>
+                                @endforeach
+                                <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Todos los años</option>
+                            </select>
+
+                            <label for="family_filter" class="sr-only">Filtrar por Familia</label>
+                            <select name="family_group_id" id="family_filter"
+                                    onchange="this.form.submit()"
+                                    class="rounded-lg border-gray-300 py-1.5 px-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Todas las familias</option>
+                                @foreach($familyGroups as $group)
+                                    <option value="{{ $group->id }}" {{ (string)$familyGroupId === (string)$group->id ? 'selected' : '' }}>
+                                        {{ $group->name }} @if($selectedYear === 'all')(Año {{ $group->year }})@endif ({{ $group->users_count }} {{ Str::plural('usuario', $group->users_count) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                        @if(!empty($familyGroupId))
+                            <a href="{{ route('admin.users.index', ['year' => $selectedYear]) }}" class="text-sm text-blue-600 hover:text-blue-800">
+                                Limpiar filtro
+                            </a>
+                        @endif
+                    </div>
+                    <a href="{{ route('admin.users.create', array_filter(['family_group_id' => $familyGroupId])) }}" class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm text-sm gap-1.5 transition">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Crear Usuario
+                    </a>
                 </div>
 
                 <div class="relative overflow-x-auto">
@@ -54,10 +88,10 @@
                                 </th>                                
                                 <th scope="col" class="px-6 py-3">
                                     Fecha de Registro
-                                </th>
+                                </th>                                
                                 <th scope="col" class="px-6 py-3">
                                     Acciones
-                                </th>
+                                </th>                                
                             </tr>
                         </thead>
                         <tbody>
@@ -71,11 +105,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($user->familyGroup)
                                         @php
-                                            // Generar un color consistente basado en el ID de la familia
                                             $hash = abs(crc32($user->familyGroup->id));
                                             $hue = $hash % 360;
-                                            $bgColor = "hsl({$hue}, 85%, 90%)"; // Fondo pastel
-                                            $textColor = "hsl({$hue}, 85%, 25%)"; // Texto oscuro
+                                            $bgColor = "hsl({$hue}, 85%, 90%)";
+                                            $textColor = "hsl({$hue}, 85%, 25%)";
                                         @endphp
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full"
                                             style="background-color: {{ $bgColor }}; color: {{ $textColor }};">
@@ -153,14 +186,18 @@
                                             <a href="{{ route('admin.users.profile', $user) }}" title="Ver perfil" class="text-blue-600 hover:text-blue-800">
                                                 <svg class="w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#2563eb"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>
                                             </a>
+                                        @else
+                                            <span class="text-gray-400 text-xs whitespace-nowrap">No disponible</span>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
                             @empty
                             <tr class="bg-white border-b border-gray-200">
-                                <td colspan="{{ config('app.env') === 'local' ? 8 : 7 }}" class="px-6 py-4 text-center text-gray-500">
-                                    No hay usuarios registrados aún.
+                                <td colspan="{{ config('app.env') === 'local' ? 8 : 7 }}" class="px-6 py-8 text-center text-gray-500">
+                                    <p class="text-base font-medium">
+                                        No hay usuarios registrados {{ $selectedYear !== 'all' ? 'para el año ' . $selectedYear : '' }}{{ !empty($familyGroupId) ? ' en esta familia' : '' }}.
+                                    </p>
                                 </td>
                             </tr>
                             @endforelse

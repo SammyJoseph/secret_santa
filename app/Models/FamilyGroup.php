@@ -20,6 +20,7 @@ class FamilyGroup extends Model
         'enable_draw_at',
         'reveal_date',
         'profile_edit_end_date',
+        'year',
     ];
 
     /**
@@ -34,6 +35,7 @@ class FamilyGroup extends Model
             'enable_draw_at' => 'datetime',
             'reveal_date' => 'datetime',
             'profile_edit_end_date' => 'datetime',
+            'year' => 'integer',
         ];
     }
 

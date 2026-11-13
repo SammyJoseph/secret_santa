@@ -2,8 +2,20 @@
     <div class="py-1 sm:py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-3 sm:p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Gestión de Familias</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Gestión de Familias</h2>
+                        <form method="GET" action="{{ route('admin.family-groups.index') }}" class="inline-flex items-center">
+                            <select name="year" onchange="this.form.submit()" class="rounded-lg border-gray-300 py-1.5 px-3 text-sm font-semibold text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @foreach($availableYears as $yr)
+                                    <option value="{{ $yr }}" {{ $selectedYear == $yr ? 'selected' : '' }}>
+                                        Año {{ $yr }}
+                                    </option>
+                                @endforeach
+                                <option value="all" {{ $selectedYear === 'all' ? 'selected' : '' }}>Todos los años</option>
+                            </select>
+                        </form>
+                    </div>
                     <a href="{{ route('admin.family-groups.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                         + Nueva Familia
                     </a>
@@ -118,8 +130,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                        No hay familias registradas
+                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                        <p class="text-base font-medium">No hay familias registradas {{ $selectedYear !== 'all' ? 'para el año ' . $selectedYear : '' }}</p>
                                     </td>
                                 </tr>
                             @endforelse

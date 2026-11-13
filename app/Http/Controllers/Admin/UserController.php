@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\FamilyGroup;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
@@ -12,6 +14,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\PngEncoder;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -20,19 +23,62 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with(['secretSantaAssignment.receiver', 'familyGroup']);
-        
-        // Filtrar por familia si se especifica
-        if ($request->has('family_group_id') && $request->family_group_id != '') {
-            $query->where('family_group_id', $request->family_group_id);
+        $currentYear = (int) date('Y');
+        $selectedYear = $request->get('year', $currentYear);
+
+        if (is_numeric($selectedYear)) {
+            $selectedYear = (int) $selectedYear;
         }
-        
+
+        // Obtener todos los años disponibles en la BD
+        $yearExpression = DB::getDriverName() === 'sqlite' ? "strftime('%Y', created_at)" : 'YEAR(created_at)';
+        $userYears = User::selectRaw("DISTINCT {$yearExpression} as year")
+            ->whereNotNull('created_at')
+            ->pluck('year')
+            ->map(fn($y) => (int)$y)
+            ->filter()
+            ->toArray();
+        $familyYears = FamilyGroup::select('year')->distinct()->whereNotNull('year')->pluck('year')->toArray();
+        $availableYears = array_values(array_unique(array_merge([$currentYear], $familyYears, $userYears)));
+        rsort($availableYears);
+
+        // Obtener familias para el filtro según el año seleccionado
+        $familyGroupsQuery = FamilyGroup::query();
+        if ($selectedYear !== 'all') {
+            $familyGroupsQuery->where('year', $selectedYear);
+        }
+        $familyGroups = $familyGroupsQuery->withCount('users')->orderBy('name', 'asc')->get();
+
+        // Validar si el family_group_id seleccionado pertenece al año seleccionado
+        $familyGroupId = $request->get('family_group_id');
+        if ($familyGroupId && $selectedYear !== 'all') {
+            if (!$familyGroups->contains('id', (int) $familyGroupId)) {
+                $familyGroupId = null;
+            }
+        }
+
+        $query = User::with(['secretSantaAssignment.receiver', 'familyGroup']);
+
+        // Filtrar por año
+        if ($selectedYear !== 'all') {
+            $query->where(function ($q) use ($selectedYear) {
+                $q->whereHas('familyGroup', function ($fq) use ($selectedYear) {
+                    $fq->where('year', $selectedYear);
+                })->orWhere(function ($oq) use ($selectedYear) {
+                    $oq->whereNull('family_group_id')
+                       ->whereYear('created_at', $selectedYear);
+                });
+            });
+        }
+
+        // Filtrar por familia si se especifica
+        if (!empty($familyGroupId)) {
+            $query->where('family_group_id', $familyGroupId);
+        }
+
         $users = $query->orderBy('updated_at', 'desc')->get();
-        
-        // Obtener todas las familias para el filtro
-        $familyGroups = \App\Models\FamilyGroup::withCount('users')->get();
-        
-        return view('admin.users.index', compact('users', 'familyGroups'));
+
+        return view('admin.users.index', compact('users', 'familyGroups', 'availableYears', 'selectedYear', 'familyGroupId'));
     }
 
     /**
@@ -40,7 +86,18 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $currentYear = (int) date('Y');
+        $familyGroups = FamilyGroup::where('is_active', true)
+            ->orderBy('year', 'desc')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $existingUsers = User::select('id', 'name', 'dni', 'email', 'profile_photo_path', 'funny_profile_photo_path', 'family_group_id', 'nickname')
+            ->with('familyGroup:id,name,year')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view('admin.users.create', compact('familyGroups', 'existingUsers', 'currentYear'));
     }
 
     /**
@@ -48,7 +105,85 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = User::where('dni', $request->dni)->first();
+
+        $request->validate([
+            'name' => 'required|string|min:2|max:255',
+            'dni' => 'required|string|digits:8',
+            'family_group_id' => 'required|exists:family_groups,id',
+            'email' => 'nullable|email|max:255',
+            'nickname' => 'nullable|string|max:255',
+            'password' => $user ? 'nullable|string|min:4' : 'required|string|min:4',
+            'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
+        ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.digits' => 'El DNI debe contener exactamente 8 dígitos.',
+            'family_group_id.required' => 'Debes seleccionar una familia.',
+            'family_group_id.exists' => 'La familia seleccionada no es válida.',
+            'password.required' => 'La contraseña es obligatoria para un usuario nuevo.',
+            'password.min' => 'La contraseña debe tener al menos 4 caracteres.',
+        ]);
+
+        $targetFamily = FamilyGroup::findOrFail($request->family_group_id);
+
+        if ($targetFamily->hasDrawn()) {
+            return back()->withInput()->with('error', 'No se pueden agregar participantes a una familia cuyo sorteo ya ha sido realizado.');
+        }
+
+        if ($user) {
+            // Usuario ya existe en la base de datos
+            if ($user->family_group_id) {
+                $currentFamily = $user->familyGroup;
+                if ($currentFamily && $currentFamily->year == $targetFamily->year && $currentFamily->id != $targetFamily->id) {
+                    return back()->withInput()->with('error', "El usuario {$user->name} (DNI {$user->dni}) ya está registrado en la familia '{$currentFamily->name}' para el año {$targetFamily->year}.");
+                }
+            }
+
+            // Actualizar datos y reasignar a la familia seleccionada
+            $updateData = [
+                'name' => $request->name,
+                'family_group_id' => $targetFamily->id,
+            ];
+
+            if ($request->filled('email')) {
+                $updateData['email'] = $request->email;
+            }
+            if ($request->filled('nickname')) {
+                $updateData['nickname'] = $request->nickname;
+            }
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+
+            $user->update($updateData);
+
+            if ($request->hasFile('profile_photo_path')) {
+                $this->saveProfileImage($user, $request->file('profile_photo_path'));
+            }
+
+            return redirect()->route('admin.users.index', ['year' => $targetFamily->year, 'family_group_id' => $targetFamily->id])
+                ->with('updated', "El participante {$user->name} fue asignado exitosamente a la familia {$targetFamily->name}.");
+        }
+
+        // Crear nuevo usuario desde cero
+        $userData = [
+            'name' => $request->name,
+            'dni' => $request->dni,
+            'email' => $request->email ?? null,
+            'nickname' => $request->nickname ?? null,
+            'family_group_id' => $targetFamily->id,
+            'password' => Hash::make($request->password),
+        ];
+
+        $newUser = User::create($userData);
+
+        if ($request->hasFile('profile_photo_path')) {
+            $this->saveProfileImage($newUser, $request->file('profile_photo_path'));
+        }
+
+        return redirect()->route('admin.users.index', ['year' => $targetFamily->year, 'family_group_id' => $targetFamily->id])
+            ->with('updated', "El usuario {$newUser->name} fue creado y asignado exitosamente a la familia {$targetFamily->name}.");
     }
 
     /**
@@ -118,7 +253,9 @@ class UserController extends Controller
             'nickname' => $request->input('nickname'),
         ]);
 
-        return redirect()->route('admin.users.index')->with('updated', $user->name );
+        $year = $user->familyGroup ? $user->familyGroup->year : date('Y');
+
+        return redirect()->route('admin.users.index', ['year' => $year])->with('updated', $user->name);
     }
 
     /**
@@ -178,6 +315,23 @@ class UserController extends Controller
         } catch (\Exception $e) {
             // If upload fails, leave funny_profile_photo_path as null
             // You can log the error if needed
+        }
+    }
+
+    /**
+     * Save the standard profile image for the user.
+     */
+    private function saveProfileImage(User $user, $imageFile): void
+    {
+        try {
+            $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($imageFile->getRealPath());
+            $image->scale(width: 600);
+            Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+            $user->update(['profile_photo_path' => $filename]);
+        } catch (\Exception $e) {
+            // Fail silently
         }
     }
 }

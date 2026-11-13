@@ -22,6 +22,35 @@ use Intervention\Image\Encoders\WebPEncoder;
 
 class UserController extends Controller
 {
+    public function checkDni(string $dni)
+    {
+        $user = User::where('dni', $dni)->with('familyGroup')->first();
+
+        if (!$user) {
+            return response()->json(['exists' => false]);
+        }
+
+        $targetFamilyId = session('registration_family_group_id', 1);
+        $targetFamily = \App\Models\FamilyGroup::find($targetFamilyId);
+        $targetYear = $targetFamily ? $targetFamily->year : (int) date('Y');
+
+        $alreadyRegisteredThisYear = false;
+        $registeredFamilyName = null;
+
+        if ($user->familyGroup && $user->familyGroup->year == $targetYear) {
+            $alreadyRegisteredThisYear = true;
+            $registeredFamilyName = $user->familyGroup->name;
+        }
+
+        return response()->json([
+            'exists' => true,
+            'name' => $user->name,
+            'photo_url' => $user->profile_photo_url,
+            'already_registered_this_year' => $alreadyRegisteredThisYear,
+            'registered_family_name' => $registeredFamilyName,
+        ]);
+    }
+
     public function store(StoreUserRequest $request)
     {
         $validated = $request->validated();
@@ -29,13 +58,34 @@ class UserController extends Controller
         // Obtener family_group_id de la sesión (establecido por CaptureFamilyGroup middleware)
         $familyGroupId = session('registration_family_group_id', 1);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'dni' => $validated['dni'],
-            'email' => $validated['email'] ?? null,
-            'password' => Hash::make($validated['password']),
-            'family_group_id' => $familyGroupId,
-        ]);
+        $user = User::where('dni', $validated['dni'])->first();
+
+        if ($user) {
+            // Usuario ya registrado anteriormente en la base de datos
+            $updateData = [
+                'name' => $validated['name'],
+                'password' => Hash::make($validated['password']),
+                'family_group_id' => $familyGroupId,
+            ];
+
+            if (!empty($validated['email'])) {
+                $updateData['email'] = $validated['email'];
+            }
+
+            $user->update($updateData);
+
+            // Reemplazar sugerencias de regalos para la nueva edición
+            $user->giftSuggestions()->delete();
+        } else {
+            // Nuevo usuario
+            $user = User::create([
+                'name' => $validated['name'],
+                'dni' => $validated['dni'],
+                'email' => $validated['email'] ?? null,
+                'password' => Hash::make($validated['password']),
+                'family_group_id' => $familyGroupId,
+            ]);
+        }
 
         if ($request->hasFile('profile_photo_path')) {
             $this->saveProfileImage($user, $request->file('profile_photo_path'));

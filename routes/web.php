@@ -26,6 +26,7 @@ Route::get('/registro', function () {
     return view('user.register');
 })->middleware('capture.family.group')->name('user.register.view');
 
+Route::get('/check-dni/{dni}', [UserController::class, 'checkDni'])->name('user.check-dni');
 Route::post('/registro', [UserController::class, 'store'])->name('user.register');
 Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.update');
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');

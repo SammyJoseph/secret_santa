@@ -62,6 +62,16 @@
                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">{{ old('description', $familyGroup->description) }}</textarea>
                     </div>
 
+                    <div>
+                        <label for="year" class="block text-sm font-medium text-gray-700">
+                            Año / Temporada <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="year" id="year" required min="2020" max="2100"
+                               value="{{ old('year', $familyGroup->year ?? date('Y')) }}"
+                               {{ $familyGroup->hasDrawn() ? 'disabled' : '' }}
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500">
+                    </div>
+
                     <hr class="my-6">
 
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">

@@ -12,13 +12,33 @@ class FamilyGroupController extends Controller
     /**
      * Display a listing of family groups.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $familyGroups = FamilyGroup::withCount(['users', 'assignments'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $currentYear = (int) date('Y');
+        $selectedYear = $request->get('year', $currentYear);
 
-        return view('admin.family-groups.index', compact('familyGroups'));
+        // Obtener todos los años disponibles en la BD
+        $availableYears = FamilyGroup::select('year')
+            ->distinct()
+            ->whereNotNull('year')
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        if (!in_array($currentYear, $availableYears)) {
+            array_unshift($availableYears, $currentYear);
+        }
+
+        $query = FamilyGroup::withCount(['users', 'assignments'])
+            ->orderBy('created_at', 'desc');
+
+        if ($selectedYear !== 'all') {
+            $query->where('year', $selectedYear);
+        }
+
+        $familyGroups = $query->get();
+
+        return view('admin.family-groups.index', compact('familyGroups', 'availableYears', 'selectedYear'));
     }
 
     /**
@@ -61,9 +81,11 @@ class FamilyGroupController extends Controller
             'profile_edit_end_date.after' => 'La fecha límite debe ser posterior a la fecha de revelación',
         ]);
 
+        $validated['year'] = (int) ($request->input('year') ?: date('Y'));
+
         FamilyGroup::create($validated);
 
-        return redirect()->route('admin.family-groups.index')
+        return redirect()->route('admin.family-groups.index', ['year' => $validated['year']])
             ->with('success', 'Familia creada exitosamente. Comparte el enlace de registro con los participantes.');
     }
 
@@ -73,6 +95,7 @@ class FamilyGroupController extends Controller
     public function show(FamilyGroup $familyGroup)
     {
         $familyGroup->loadCount(['users', 'assignments']);
+        $familyGroup->load(['users' => fn($q) => $q->orderBy('name', 'asc')]);
         
         return view('admin.family-groups.show', compact('familyGroup'));
     }
@@ -124,6 +147,7 @@ class FamilyGroupController extends Controller
             ],
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'year' => 'nullable|integer|min:2020|max:2100',
             'enable_draw_at' => 'required|date',
             'reveal_date' => 'required|date|after:enable_draw_at',
             'profile_edit_end_date' => 'required|date|after:reveal_date',
