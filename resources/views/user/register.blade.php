@@ -295,7 +295,6 @@
         const phoneInput = document.getElementById('phone');
         const migratedDniInput = document.getElementById('migrated_dni');
         const nameInput = document.getElementById('name');
-        const profilePreview = document.getElementById('profile-preview');
         const identifierStatus = document.getElementById('identifier-status');
         const registerForm = document.querySelector('form[action="{{ route('user.register') }}"]');
         const submitBtn = registerForm ? registerForm.querySelector('button[type="submit"]') : null;
