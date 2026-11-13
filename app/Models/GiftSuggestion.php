@@ -11,6 +11,7 @@ class GiftSuggestion extends Model
 
     protected $fillable = [
         'user_id',
+        'family_group_id',
         'suggestion',
         'reference_image_path',
     ];
@@ -18,5 +19,10 @@ class GiftSuggestion extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function familyGroup()
+    {
+        return $this->belongsTo(FamilyGroup::class);
     }
 }

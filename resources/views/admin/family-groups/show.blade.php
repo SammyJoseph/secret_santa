@@ -171,7 +171,8 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                             @foreach($familyGroup->users as $member)
                                 @php
-                                    $hash = abs(crc32($member->dni . $member->name));
+                                    $memberId = $member->phone ?? $member->dni;
+                                    $hash = abs(crc32($memberId . $member->name));
                                     $hue = $hash % 360;
                                     $bgColor = "hsl({$hue}, 85%, 95%)";
                                     $textColor = "hsl({$hue}, 85%, 25%)";
@@ -186,7 +187,7 @@
                                             {{ $member->nickname ?: $member->name }}
                                         </p>
                                         <p class="text-xs text-gray-500 font-mono">
-                                            DNI: {{ $member->dni }}
+                                            {{ $member->phone ? 'Cel: ' . $member->phone : 'DNI: ' . $member->dni }}
                                         </p>
                                     </div>
                                 </div>

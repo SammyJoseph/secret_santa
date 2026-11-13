@@ -27,9 +27,11 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $dni = fake()->unique()->numerify('########');
+        $phone = '9' . fake()->unique()->numerify('########');
         return [
             'name' => fake()->name(),
             'dni' => $dni,
+            'phone' => $phone,
             'email' => $dni . '@secret-santa.local',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),

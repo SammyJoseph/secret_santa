@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class FamilyGroup extends Model
 {
@@ -42,9 +43,9 @@ class FamilyGroup extends Model
     /**
      * Get the users for the family group.
      */
-    public function users(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'family_group_user')->withTimestamps();
     }
 
     /**
@@ -53,6 +54,14 @@ class FamilyGroup extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(SecretSantaAssignment::class);
+    }
+
+    /**
+     * Get the gift suggestions for this family group.
+     */
+    public function giftSuggestions(): HasMany
+    {
+        return $this->hasMany(GiftSuggestion::class);
     }
 
     /**

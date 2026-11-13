@@ -19,14 +19,10 @@ Route::get('/', function () {
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
 // Rutas de registro customizadas con middleware
-Route::get('/registro', function () {
-    if (Auth::check()) {
-        return redirect()->route('user.profile');
-    }
-    return view('user.register');
-})->middleware('capture.family.group')->name('user.register.view');
+Route::get('/registro', [UserController::class, 'showRegistrationForm'])->middleware('capture.family.group')->name('user.register.view');
 
-Route::get('/check-dni/{dni}', [UserController::class, 'checkDni'])->name('user.check-dni');
+Route::get('/check-identifier/{identifier}', [UserController::class, 'checkIdentifier'])->name('user.check-identifier');
+Route::get('/check-dni/{dni}', [UserController::class, 'checkIdentifier'])->name('user.check-dni');
 Route::post('/registro', [UserController::class, 'store'])->name('user.register');
 Route::put('/usuario/{user}', [UserController::class, 'update'])->name('user.update');
 Route::post('/temp-upload', [UserController::class, 'tempUpload'])->name('user.temp-upload');

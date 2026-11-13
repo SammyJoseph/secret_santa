@@ -1,4 +1,15 @@
 <x-guest-layout>
+    @php
+        $familyGroup = $familyGroup ?? ($targetFamily ?? null);
+        if (!$familyGroup) {
+            $targetFamilyId = session('registration_family_group_id');
+            if ($targetFamilyId) {
+                $familyGroup = \App\Models\FamilyGroup::find($targetFamilyId);
+            } elseif (request()->has('fam')) {
+                $familyGroup = \App\Models\FamilyGroup::where('slug', request('fam'))->where('is_active', true)->first();
+            }
+        }
+    @endphp
     <div class="relative min-h-screen flex items-center justify-center bg-center bg-gray-50 py-6 md:py-12 px-4 sm:px-6 lg:px-8 bg-gray-500 bg-no-repeat bg-cover relative items-center"
         style="background-image: url('{{ asset('assets/images/xbg.jpg') }}');">
         <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
@@ -6,7 +17,7 @@
             <div class="grid  gap-8 grid-cols-1">
                 <div class="flex flex-col" x-data="{ showModal: false, modalImage: '' }">
                     <div class="flex flex-col sm:flex-row items-center">
-                        <h2 class="font-semibold text-lg mr-auto">Regístrate para participar en "El Amigo Secreto Familiar" de esta Navidad {{ date('Y') }}</h2>
+                        <h2 class="font-semibold text-lg mr-auto">Regístrate para participar en "El Amigo Secreto Familiar{{ !empty($familyGroup?->name) ? ' de ' . $familyGroup->name : '' }}" de esta Navidad {{ date('Y') }}</h2>
                         <div class="w-full sm:w-auto sm:ml-auto mt-3 sm:mt-0"></div>
                     </div>
                     <div>
@@ -20,12 +31,13 @@
                                                 src="{{ asset('assets/images/profile.jpg') }}"
                                                 alt="Avatar Upload">
                                         </div>
-                                        <label class="cursor-pointer ">
+                                        <label class="cursor-pointer">
                                             <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">
                                                 Subir Foto
                                             </span>
-                                            <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*" data-validation-required="true">
+                                            <input type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*">
                                         </label>
+                                        <span class="text-xs text-gray-400 ml-2">Opcional</span>
                                         <input type="hidden" name="temp_image_filename" id="temp-image-filename" value="{{ session('temp_profile_image') }}">
                                         <span id="profile-photo-error" class="text-red-500 text-xs ml-2 animate-bounce hidden"></span>
                                     </div>
@@ -43,64 +55,33 @@
                                         @enderror
                                     </div>
                                     <div class="space-y-2 w-full text-xs">
-                                        <label class="font-semibold text-gray-600 py-2">DNI</label>
-                                        <input placeholder="87654321" required type="text" name="dni" id="dni" value="{{ old('dni') }}" minlength="8" maxlength="8" pattern="\d{8}" title="Ingresar 8 dígitos"
+                                        <div class="flex justify-between items-center py-2">
+                                            <label class="font-semibold text-gray-600">Número de Celular <span class="text-red-500">*</span></label>
+                                            <button type="button" id="btn-toggle-dni-link" class="text-xs text-amber-600 hover:text-amber-800 underline font-medium">
+                                                ¿Participaste el año pasado?
+                                            </button>
+                                        </div>
+                                        <input placeholder="Ej: 987654321" required type="tel" name="phone" id="phone" value="{{ old('phone') }}" minlength="9" maxlength="9" pattern="\d{9}" title="Ingresar 9 dígitos de celular"
                                             class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-gray-200 rounded-lg h-10 px-4 text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400"/>
-                                        <div id="dni-status" class="mt-1 text-xs"></div>
-                                        @error('dni')
+                                        <input type="hidden" name="migrated_dni" id="migrated_dni" value="{{ old('migrated_dni') }}">
+
+                                        {{-- Campo opcional para vincular DNI de año anterior --}}
+                                        <div id="dni-legacy-container" class="hidden mt-2 p-3 bg-amber-50/90 border border-amber-200 rounded-lg space-y-1">
+                                            <label class="block text-xs font-semibold text-amber-900">Ingresa tu DNI anterior para recuperar tus datos:</label>
+                                            <div class="flex gap-2">
+                                                <input type="text" id="legacy-dni-input" maxlength="8" placeholder="8 dígitos de tu DNI"
+                                                    class="w-full bg-white text-gray-700 border border-amber-300 rounded-lg h-9 px-3 text-xs focus:ring-1 focus:ring-[#F8B229] focus:outline-none font-mono">
+                                                <button type="button" id="btn-search-dni" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                                    Vincular
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div id="identifier-status" class="mt-1 text-xs"></div>
+                                        @error('phone')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
-                                    </div>
-                                </div>
-                                <div class="mt-6">
-                                    <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 1. <span class="text-gray-400">Sé lo más específico posible.</span></label>
-                                        <div class="flex flex-wrap items-stretch w-full mb-4 relative">
-                                            <div class="flex">
-                                                <span
-                                                    class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[#BB2528] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[#BB2528] justify-center items-center  text-xl rounded-lg text-white">
-                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
-                                                </span>
-                                            </div>
-                                            <textarea name="gift_suggestions[0]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
-                                                placeholder="Me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.0') }}</textarea>
-                                        </div>
-                                        @error('gift_suggestions.0')
-                                            <p class="text-red-500 text-xs">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 2</label>
-                                        <div class="flex flex-wrap items-stretch w-full mb-4 relative">
-                                            <div class="flex">
-                                                <span
-                                                    class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[#BB2528] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[#BB2528] justify-center items-center  text-xl rounded-lg text-white">
-                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
-                                                </span>
-                                            </div>
-                                            <textarea name="gift_suggestions[1]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
-                                                placeholder="O también me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.1') }}</textarea>
-                                        </div>
-                                        @error('gift_suggestions.1')
-                                            <p class="text-red-500 text-xs">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="space-y-2 w-full text-xs mb-3">
-                                        <label class=" font-semibold text-gray-600 py-2">Mi sugerencia de regalo 3</label>
-                                        <div class="flex flex-wrap items-stretch w-full mb-4 relative">
-                                            <div class="flex">
-                                                <span
-                                                    class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[#BB2528] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[#BB2528] justify-center items-center  text-xl rounded-lg text-white">
-                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
-                                                </span>
-                                            </div>
-                                            <textarea name="gift_suggestions[2]" required
-                                                class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
-                                                placeholder="O también me gustaría recibir..." autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.2') }}</textarea>
-                                        </div>
-                                        @error('gift_suggestions.2')
+                                        @error('migrated_dni')
                                             <p class="text-red-500 text-xs">{{ $message }}</p>
                                         @enderror
                                     </div>
@@ -233,7 +214,6 @@
             }
         });
 
-        // Custom validation for profile photo (required but with temp upload support)
         const form = document.querySelector('form');
         const photoError = document.getElementById('profile-photo-error');
         const submitButton = document.getElementById('submit-button');
@@ -241,24 +221,7 @@
         const submitText = document.getElementById('submit-text');
         
         form.addEventListener('submit', function(e) {
-            const hasFile = profileInput.files.length > 0;
-            const hasTempImage = tempImageFilename.value.trim() !== '';
-            
-            // Require either a new file OR a temp uploaded image
-            if (!hasFile && !hasTempImage) {
-                e.preventDefault();
-                photoError.textContent = 'Requerido';
-                photoError.classList.remove('hidden');
-                
-                // Scroll to error
-                profileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return false;
-            }
-            
-            // Clear error if validation passes
-            photoError.classList.add('hidden');
-            
-            // Show loading state after validation passes
+            // Show loading state
             submitButton.disabled = true;
             submitSpinner.classList.remove('hidden');
             submitText.textContent = 'Registrando...';
@@ -271,7 +234,7 @@
         
         // Clear error when user selects a file
         profileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
+            if (this.files.length > 0 && photoError) {
                 photoError.classList.add('hidden');
             }
         });
@@ -333,59 +296,134 @@
             }
         });
 
-        // Verificación de DNI en tiempo real
-        const dniInput = document.getElementById('dni');
+        // Verificación de Celular y vinculación de DNI en tiempo real
+        const phoneInput = document.getElementById('phone');
+        const migratedDniInput = document.getElementById('migrated_dni');
         const nameInput = document.getElementById('name');
         const profilePreview = document.getElementById('profile-preview');
-        const dniStatus = document.getElementById('dni-status');
+        const identifierStatus = document.getElementById('identifier-status');
         const registerForm = document.querySelector('form[action="{{ route('user.register') }}"]');
         const submitBtn = registerForm ? registerForm.querySelector('button[type="submit"]') : null;
 
-        let lastCheckedDni = '';
+        const btnToggleDniLink = document.getElementById('btn-toggle-dni-link');
+        const dniLegacyContainer = document.getElementById('dni-legacy-container');
+        const legacyDniInput = document.getElementById('legacy-dni-input');
+        const btnSearchDni = document.getElementById('btn-search-dni');
 
-        async function checkDniExisting() {
-            const dni = dniInput.value.trim();
-            if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
-                if (dniStatus) dniStatus.innerHTML = '';
+        if (btnToggleDniLink && dniLegacyContainer) {
+            btnToggleDniLink.addEventListener('click', () => {
+                dniLegacyContainer.classList.toggle('hidden');
+                if (!dniLegacyContainer.classList.contains('hidden') && legacyDniInput) {
+                    legacyDniInput.focus();
+                }
+            });
+        }
+
+        let lastCheckedVal = '';
+
+        async function verifyIdentifier(val, isExplicitDni = false) {
+            val = val.trim();
+            if (!/^\d{8,9}$/.test(val)) {
+                if (identifierStatus && !isExplicitDni) identifierStatus.innerHTML = '';
                 return;
             }
-            if (dni === lastCheckedDni) return;
-            lastCheckedDni = dni;
+            if (val === lastCheckedVal && !isExplicitDni) return;
+            lastCheckedVal = val;
 
             try {
-                const response = await fetch(`/check-dni/${dni}`);
+                const response = await fetch(`/check-identifier/${val}`);
                 if (!response.ok) return;
                 const data = await response.json();
 
                 if (data.exists) {
                     if (data.already_registered_this_year) {
-                        dniStatus.innerHTML = `<span class="text-red-600 font-semibold">⚠️ Este DNI ya está registrado este año en la familia "${data.registered_family_name}".</span>`;
+                        identifierStatus.innerHTML = `<span class="text-red-600 font-semibold">⚠️ Ya estás registrado este año en la familia "${data.registered_family_name}".</span>`;
                         if (submitBtn) submitBtn.disabled = true;
-                    } else {
-                        if (data.name && nameInput) {
-                            nameInput.value = data.name;
-                        }
-                        if (data.photo_url && profilePreview) {
-                            profilePreview.src = data.photo_url;
-                        }
-                        dniStatus.innerHTML = `<span class="text-green-600 font-medium">✓ ¡Hola ${data.name}! Reconocimos tu DNI de años anteriores. Se cargaron tu nombre y foto. Escribe tus 3 nuevas sugerencias de regalo y tu contraseña.</span>`;
-                        if (submitBtn) submitBtn.disabled = false;
+                        return;
                     }
+
+                    // Cargar nombre y foto del usuario existente
+                    if (data.name && nameInput) {
+                        nameInput.value = data.name;
+                    }
+                    if (data.photo_url && profilePreview) {
+                        profilePreview.src = data.photo_url;
+                    }
+
+                    if (data.matched_by === 'dni') {
+                        // El usuario ingresó o fue encontrado por su DNI anterior
+                        if (migratedDniInput) migratedDniInput.value = data.dni;
+                        if (dniLegacyContainer) dniLegacyContainer.classList.add('hidden');
+
+                        identifierStatus.innerHTML = `<div class="p-2 bg-green-50 border border-green-200 text-green-700 rounded mt-1 font-medium">✓ ¡Hola ${data.name}! Te reconocimos de la edición anterior con tu DNI (${data.dni}). Ahora ingresa tu número de celular (9 dígitos) para que sea tu nuevo acceso.</div>`;
+
+                        // Si ingresó los 8 dígitos del DNI en el campo del teléfono, limpiamos el campo del teléfono para que ingrese su celular
+                        if (phoneInput && phoneInput.value.trim() === data.dni) {
+                            phoneInput.value = '';
+                            phoneInput.placeholder = 'Ingresa tu celular (9 dígitos)';
+                            phoneInput.focus();
+                        }
+                    } else {
+                        // Encontrado por teléfono
+                        identifierStatus.innerHTML = `<span class="text-green-600 font-medium">✓ ¡Hola ${data.name}! Reconocimos tu celular de años anteriores. Se cargaron tu nombre y foto. Escribe tu contraseña para participar.</span>`;
+                    }
+
+                    if (submitBtn) submitBtn.disabled = false;
                 } else {
-                    dniStatus.innerHTML = '';
+                    if (isExplicitDni) {
+                        identifierStatus.innerHTML = `<span class="text-amber-700">No encontramos ningún participante previo con el DNI ${val}. Puedes registrarte como nuevo participante ingresando tus datos.</span>`;
+                    } else if (val.length === 9) {
+                        identifierStatus.innerHTML = `<span class="text-gray-500">✓ Número disponible para nuevo registro.</span>`;
+                    } else {
+                        identifierStatus.innerHTML = '';
+                    }
                     if (submitBtn) submitBtn.disabled = false;
                 }
             } catch (err) {
-                console.error('Error al verificar DNI:', err);
+                console.error('Error al verificar identificador:', err);
             }
         }
 
-        if (dniInput) {
-            dniInput.addEventListener('input', checkDniExisting);
-            dniInput.addEventListener('blur', checkDniExisting);
-            if (dniInput.value && dniInput.value.length === 8) {
-                checkDniExisting();
+        if (phoneInput) {
+            phoneInput.addEventListener('input', () => {
+                const val = phoneInput.value.trim();
+                if (val.length === 8 || val.length === 9) {
+                    verifyIdentifier(val);
+                } else {
+                    if (identifierStatus && !migratedDniInput?.value) {
+                        identifierStatus.innerHTML = '';
+                    }
+                }
+            });
+
+            phoneInput.addEventListener('blur', () => {
+                const val = phoneInput.value.trim();
+                if (val.length === 8 || val.length === 9) {
+                    verifyIdentifier(val);
+                }
+            });
+
+            if (phoneInput.value && (phoneInput.value.length === 8 || phoneInput.value.length === 9)) {
+                verifyIdentifier(phoneInput.value);
             }
+        }
+
+        if (btnSearchDni && legacyDniInput) {
+            btnSearchDni.addEventListener('click', () => {
+                const legacyVal = legacyDniInput.value.trim();
+                if (legacyVal.length === 8) {
+                    verifyIdentifier(legacyVal, true);
+                } else {
+                    alert('El DNI debe tener 8 dígitos.');
+                }
+            });
+
+            legacyDniInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    btnSearchDni.click();
+                }
+            });
         }
 
     </script>

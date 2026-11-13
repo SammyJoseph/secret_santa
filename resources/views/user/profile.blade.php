@@ -5,13 +5,21 @@
         <div class="max-w-5xl w-full shadow-lg z-10 overflow-auto">
             @include('user._partials.validation-messages')
 
-            <div class="p-4 lg:p-10">            
-                <div class="grid gap-4 lg:gap-8 grid-cols-1 lg:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">
-                    <!-- Left Column: Secret Friend Placeholder -->
-                    @include('user._partials.my-secret-santa')                    
-
+            <div class="p-4 lg:p-10">
+                @if(!empty($isPastYear))
+                    <div class="mb-4 p-4 rounded-lg bg-amber-500/90 text-white shadow flex items-center space-x-3 text-xs sm:text-sm">
+                        <svg class="h-6 w-6 flex-shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Estás viendo los resultados de tu participación en la Navidad <strong>{{ $familyGroup->year }}</strong>. Para participar en la edición <strong>{{ date('Y') }}</strong>, solicita a tu organizador el enlace de invitación de tu familia e ingresa a través de él.</span>
+                    </div>
+                @endif            
+                <div class="grid gap-4 lg:gap-8 grid-cols-1 lg:grid-cols-2" x-data="{ showModal: false, modalImage: '' }">                    
                     <!-- Right Column: User Profile Edit -->
                     @include('user._partials.my-profile')
+
+                    <!-- Left Column: Secret Friend Placeholder -->
+                    @include('user._partials.my-secret-santa')                    
                 </div>
             </div>
         </div>        
@@ -194,7 +202,7 @@
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
                 countdownElement.innerHTML = `
-                    <p>La información se revelará en:</p>
+                    <p>Se revelará en:</p>
                     <p class="font-semibold">${days} días, ${hours} horas, ${minutes} minutos, ${seconds} segundos</p>
                 `;
             } else {

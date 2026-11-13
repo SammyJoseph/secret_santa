@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -29,6 +31,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'dni',
+        'phone',
         'email',
         'password',
         'is_admin',
@@ -77,12 +80,26 @@ class User extends Authenticatable
 
     public function giftSuggestions(): HasMany
     {
+        $relation = $this->hasMany(GiftSuggestion::class);
+        if ($this->family_group_id) {
+            $relation->where('family_group_id', $this->family_group_id);
+        }
+        return $relation;
+    }
+
+    public function allGiftSuggestions(): HasMany
+    {
         return $this->hasMany(GiftSuggestion::class);
     }
 
-    public function familyGroup()
+    public function familyGroup(): BelongsTo
     {
         return $this->belongsTo(FamilyGroup::class);
+    }
+
+    public function familyGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(FamilyGroup::class, 'family_group_user')->withTimestamps();
     }
 
     public function getAllFamilyMembers()
@@ -100,6 +117,15 @@ class User extends Authenticatable
 
     public function secretSantaAssignment()
     {
-        return $this->hasOne(SecretSantaAssignment::class, 'giver_id');
+        $relation = $this->hasOne(SecretSantaAssignment::class, 'giver_id');
+        if ($this->family_group_id) {
+            $relation->where('family_group_id', $this->family_group_id);
+        }
+        return $relation;
+    }
+
+    public function secretSantaAssignments(): HasMany
+    {
+        return $this->hasMany(SecretSantaAssignment::class, 'giver_id');
     }
 }

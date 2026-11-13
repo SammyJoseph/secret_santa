@@ -134,7 +134,7 @@
                                     </div>
                                     <div class="ps-3">
                                         <div class="text-base font-semibold"><a href="{{ route('admin.users.edit', $user) }}">{{ $user->nickname ?: $user->name }}</a></div>
-                                        <div class="font-normal text-gray-500">{{ $user->dni }}</div>
+                                        <div class="font-normal text-gray-500 font-mono text-xs">{{ $user->phone ?? $user->dni }}</div>
                                     </div>
                                 </th>
 
@@ -149,7 +149,7 @@
                                             <img class="w-8 h-8 rounded-full object-cover mr-2" src="{{ $user->secretSantaAssignment->receiver->profile_photo_url }}" alt="Avatar de {{ $user->secretSantaAssignment->receiver->name }}">
                                             <div>
                                                 <div class="text-sm font-medium">{{ $user->secretSantaAssignment->receiver->name }}</div>
-                                                <div class="text-xs text-gray-500">{{ $user->secretSantaAssignment->receiver->dni }}</div>
+                                                <div class="text-xs text-gray-500 font-mono">{{ $user->secretSantaAssignment->receiver->phone ?? $user->secretSantaAssignment->receiver->dni }}</div>
                                             </div>
                                         </div>
                                     @else
@@ -169,7 +169,7 @@
                                                         <img class="w-5 h-5 rounded-full object-cover mr-2" src="{{ $familyMember->profile_photo_url }}" alt="Avatar de {{ $familyMember->name }}">
                                                         <div class="flex space-x-1">
                                                             <div class="font-medium whitespace-nowrap">{{ $familyMember->name }}</div>
-                                                            <div class="text-gray-500">{{ $familyMember->dni }}</div>
+                                                            <div class="text-gray-500 font-mono">{{ $familyMember->phone ?? $familyMember->dni }}</div>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -76,13 +76,13 @@
 
                         <div>
                             <label for="dni" class="block text-sm font-medium text-gray-700">
-                                DNI <span class="text-red-500">*</span>
+                                Celular o DNI <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="dni" id="dni" x-model="formData.dni" @input="onDniInput()" required
-                                   maxlength="8" minlength="8" pattern="\d{8}" title="Debe contener exactamente 8 dígitos"
-                                   placeholder="87654321"
+                                   maxlength="9" minlength="8" pattern="\d{8,9}" title="Debe contener 8 o 9 dígitos"
+                                   placeholder="987654321 o 87654321"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm font-mono">
-                            <p class="mt-1 text-xs text-gray-500">Documento de 8 dígitos.</p>
+                            <p class="mt-1 text-xs text-gray-500">Celular (9 dígitos) o DNI (8 dígitos).</p>
                         </div>
 
                         <div>
@@ -180,13 +180,13 @@
                 },
 
                 onDniInput() {
-                    // Si el admin escribe 8 dígitos, buscar automáticamente si coincide con uno existente
-                    if (this.formData.dni && this.formData.dni.length === 8) {
-                        const found = this.existingUsers.find(u => u.dni === this.formData.dni);
+                    const val = this.formData.dni?.trim();
+                    if (val && (val.length === 8 || val.length === 9)) {
+                        const found = this.existingUsers.find(u => u.phone === val || u.dni === val);
                         if (found) {
                             this.onUserSelected(found);
                             if (window.Livewire) {
-                                window.Livewire.dispatch('select-user-by-dni', { dni: this.formData.dni });
+                                window.Livewire.dispatch('select-user-by-dni', { dni: val });
                             }
                         }
                     }

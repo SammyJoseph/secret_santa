@@ -35,7 +35,7 @@ class DrawController extends Controller
         
         $hasAssignments = $assignments->isNotEmpty();
         
-        $users = User::where('family_group_id', $selectedFamilyGroupId)->get();
+        $users = $selectedFamilyGroup->users;
         
         // Usar fechas de la familia seleccionada
         $enableDrawTime = $selectedFamilyGroup->enable_draw_at;
@@ -79,7 +79,7 @@ class DrawController extends Controller
         }
 
         // Filtrar usuarios solo de esta familia
-        $users = User::where('family_group_id', $familyGroupId)->get();
+        $users = $familyGroup->users;
 
         if ($users->count() < 2) {
             if ($wantsJson) {

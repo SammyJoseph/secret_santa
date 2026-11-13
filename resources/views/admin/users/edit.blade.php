@@ -29,18 +29,59 @@
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="mt-3 space-y-3">
-                            @foreach($user->giftSuggestions as $suggestion)
-                                <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-3">
-                                    <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer" @click="showModal = true; modalImage = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}'">
-                                        <img class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+                        <div class="mt-4">
+                            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
+                                Sugerencias actuales {{ $user->familyGroup ? '(' . $user->familyGroup->name . ' - ' . $user->familyGroup->year . ')' : '' }}
+                            </h4>
+                            <div class="space-y-3">
+                                @forelse($user->giftSuggestions as $suggestion)
+                                    <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-3">
+                                        <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer" @click="showModal = true; modalImage = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}'">
+                                            <img class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-700">{{ $suggestion->suggestion }}</p>
+                                        </div>
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-700">{{ $suggestion->suggestion }}</p>
-                                    </div>
-                                </div>
-                            @endforeach
+                                @empty
+                                    <p class="text-xs text-gray-400 italic">No ha registrado sugerencias para esta familia aún.</p>
+                                @endforelse
+                            </div>
                         </div>
+
+                        @php
+                            $pastSuggestions = $user->allGiftSuggestions ? $user->allGiftSuggestions->filter(fn($s) => $s->family_group_id != $user->family_group_id) : collect();
+                        @endphp
+                        @if($pastSuggestions->isNotEmpty())
+                            <div class="mt-6 border-t pt-4">
+                                <h4 class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-2 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 -960 960 960"><path d="M160-160v-320h160v320H160Zm240 0v-480h160v480H400Zm240 0v-640h160v640H640Z"/></svg>
+                                    Recuerdos / Sugerencias de ediciones pasadas
+                                </h4>
+                                <div class="space-y-3">
+                                    @foreach($pastSuggestions->groupBy('family_group_id') as $familyGroupId => $suggestions)
+                                        @php
+                                            $fg = $suggestions->first()->familyGroup;
+                                        @endphp
+                                        <div class="border rounded-lg p-3 bg-amber-50/50">
+                                            <p class="text-xs font-bold text-gray-700 mb-2">🎄 {{ $fg ? $fg->name . ' (' . $fg->year . ')' : 'Edición anterior' }}</p>
+                                            <div class="space-y-2">
+                                                @foreach($suggestions as $suggestion)
+                                                    <div class="bg-white rounded p-2 flex items-center space-x-2 border border-gray-100">
+                                                        <div class="w-10 h-10 flex-none rounded overflow-hidden cursor-pointer" @click="showModal = true; modalImage = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}'">
+                                                            <img class="w-full h-full object-cover rounded" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen">
+                                                        </div>
+                                                        <div class="flex-1 text-xs text-gray-600">
+                                                            {{ $suggestion->suggestion }}
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                         <div class="text-center mt-6">
                             <button type="submit" class="bg-[#146B3A] text-white px-4 py-2 rounded-full hover:bg-green-800">Guardar Cambios</button>
                             <div class="mt-3">

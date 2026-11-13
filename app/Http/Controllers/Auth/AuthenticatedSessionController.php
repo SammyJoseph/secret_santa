@@ -20,11 +20,18 @@ class AuthenticatedSessionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'dni' => 'required|string',
+            'dni' => 'required_without_all:phone,email|string|nullable',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('dni', $request->dni)->first();
+        $identifier = trim($request->input('dni') ?? $request->input('phone') ?? $request->input('email') ?? '');
+
+        $user = User::where('phone', $identifier)
+            ->orWhere('dni', $identifier)
+            ->orWhere('email', $identifier)
+            ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -36,6 +43,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('user.profile');
+        return redirect()->intended(route('user.profile'));
     }
 }

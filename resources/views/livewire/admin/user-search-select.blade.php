@@ -7,7 +7,7 @@
                 <div class="truncate">
                     <span class="text-sm font-semibold text-gray-900">{{ $selectedUserName }}</span>
                     <span class="text-xs text-amber-800 bg-amber-100/70 border border-amber-200 px-1.5 py-0.5 rounded font-mono font-medium ml-1.5">
-                        DNI: {{ $selectedUserDni }}
+                        {{ $selectedUserDni }}
                     </span>
                 </div>
             </div>
@@ -48,7 +48,7 @@
                 wire:model.live.debounce.250ms="search" 
                 @focus="open = true" 
                 @click="open = true" 
-                placeholder="Buscar por nombre o DNI"
+                placeholder="Buscar por nombre, celular o DNI"
                 class="block w-full pl-9 pr-10 py-2 rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-sm bg-white cursor-pointer"
             >
 
@@ -94,7 +94,7 @@
                         type="text" 
                         x-ref="dropdownSearch"
                         wire:model.live.debounce.250ms="search" 
-                        placeholder="Escribe para buscar por nombre o DNI..." 
+                        placeholder="Escribe para buscar por nombre, celular o DNI..." 
                         class="w-full pl-8 pr-3 py-1.5 text-xs rounded border-gray-300 focus:border-amber-500 focus:ring-amber-500 bg-white"
                     >
                 </div>
@@ -128,7 +128,7 @@
                             </div>
                             <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
                                 <span class="font-mono bg-gray-100 text-gray-700 px-1.5 py-0.2 rounded font-semibold">
-                                    DNI: {{ $user->dni }}
+                                    {{ $user->phone ? 'Cel: ' . $user->phone : 'DNI: ' . $user->dni }}
                                 </span>
                                 @if($user->familyGroup)
                                     <span class="text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-100 truncate text-[11px]">
@@ -158,7 +158,7 @@
         {{-- Pie de menú informativo --}}
         <div class="bg-gray-50 px-3 py-1.5 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
             <span>{{ $users->count() }} participante(s) disponible(s)</span>
-            <span class="italic text-gray-400">Escribe nombre o DNI para filtrar</span>
+            <span class="italic text-gray-400">Escribe nombre, celular o DNI para filtrar</span>
         </div>
     </div>
 </div>

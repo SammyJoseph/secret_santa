@@ -105,9 +105,9 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <span title="{{ $group->profile_edit_end_date->format('d/m/Y H:i') }}">
-                                            {{ $group->profile_edit_end_date->diffForHumans() }}
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                        <span title="{{ $group->profile_edit_end_date?->format('d/m/Y H:i') }}">
+                                            {{ $group->profile_edit_end_date?->diffForHumans() ?? 'No configurada' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">

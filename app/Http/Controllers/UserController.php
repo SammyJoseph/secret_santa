@@ -22,12 +22,77 @@ use Intervention\Image\Encoders\WebPEncoder;
 
 class UserController extends Controller
 {
-    public function checkDni(string $dni)
+    public function showRegistrationForm(Request $request)
     {
-        $user = User::where('dni', $dni)->with('familyGroup')->first();
+        $targetFamilyId = session('registration_family_group_id');
+        $targetFamily = null;
+
+        if ($targetFamilyId) {
+            $targetFamily = \App\Models\FamilyGroup::find($targetFamilyId);
+        }
+
+        if (!$targetFamily && $request->has('fam')) {
+            $targetFamily = \App\Models\FamilyGroup::where('slug', $request->fam)->where('is_active', true)->first();
+        }
+
+        if (!$targetFamily) {
+            $targetFamily = \App\Models\FamilyGroup::find(1) ?? \App\Models\FamilyGroup::where('is_active', true)->orderBy('year', 'desc')->first();
+        }
+
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if (!$targetFamily) {
+                return redirect()->route('user.profile')->with('error', 'La familia especificada no es válida.');
+            }
+
+            if ($targetFamily->hasDrawn()) {
+                return redirect()->route('user.profile')->with('error', "No es posible unirse a '{$targetFamily->name}' porque el sorteo ya fue realizado.");
+            }
+
+            // Si ya pertenece a esta misma familia, solo redirigir a su perfil
+            if ($user->family_group_id === $targetFamily->id) {
+                return redirect()->route('user.profile');
+            }
+
+            // Si ya está en otra familia del mismo año
+            if ($user->familyGroup && $user->familyGroup->year === $targetFamily->year && $user->familyGroup->id !== $targetFamily->id) {
+                if ($user->familyGroup->hasDrawn()) {
+                    return redirect()->route('user.profile')->with('error', "Ya estás participando en '{$user->familyGroup->name}' este año y su sorteo ya fue realizado.");
+                }
+            }
+
+            // Auto-asignación a la nueva familia (Opción A)
+            // Vinculamos en la tabla pivote para preservar membresías de familias anteriores
+            $targetFamily->users()->syncWithoutDetaching([$user->id]);
+
+            $user->update([
+                'family_group_id' => $targetFamily->id,
+                'family_id' => null, // resetear exclusión de sorteos anteriores
+            ]);
+
+            return redirect()->route('user.profile')->with('success', "¡Te has unido exitosamente a {$targetFamily->name} ({$targetFamily->year})! Por favor completa tus 3 sugerencias de regalo para esta nueva edición.");
+        }
+
+        $familyGroup = $targetFamily;
+
+        return view('user.register', compact('familyGroup', 'targetFamily'));
+    }
+
+    public function checkIdentifier(string $identifier)
+    {
+        $identifier = trim($identifier);
+
+        $user = User::where('phone', $identifier)
+                    ->orWhere('dni', $identifier)
+                    ->with(['familyGroup', 'familyGroups'])
+                    ->first();
 
         if (!$user) {
-            return response()->json(['exists' => false]);
+            return response()->json([
+                'exists' => false,
+                'identifier' => $identifier,
+            ]);
         }
 
         $targetFamilyId = session('registration_family_group_id', 1);
@@ -37,18 +102,31 @@ class UserController extends Controller
         $alreadyRegisteredThisYear = false;
         $registeredFamilyName = null;
 
-        if ($user->familyGroup && $user->familyGroup->year == $targetYear) {
+        $currentYearFamily = $user->familyGroups()->where('year', $targetYear)->first()
+            ?? ($user->familyGroup && $user->familyGroup->year == $targetYear ? $user->familyGroup : null);
+
+        if ($currentYearFamily) {
             $alreadyRegisteredThisYear = true;
-            $registeredFamilyName = $user->familyGroup->name;
+            $registeredFamilyName = $currentYearFamily->name;
         }
+
+        $matchedBy = ($user->dni === $identifier) ? 'dni' : 'phone';
 
         return response()->json([
             'exists' => true,
+            'matched_by' => $matchedBy,
             'name' => $user->name,
+            'dni' => $user->dni,
+            'phone' => $user->phone,
             'photo_url' => $user->profile_photo_url,
             'already_registered_this_year' => $alreadyRegisteredThisYear,
             'registered_family_name' => $registeredFamilyName,
         ]);
+    }
+
+    public function checkDni(string $dni)
+    {
+        return $this->checkIdentifier($dni);
     }
 
     public function store(StoreUserRequest $request)
@@ -58,15 +136,37 @@ class UserController extends Controller
         // Obtener family_group_id de la sesión (establecido por CaptureFamilyGroup middleware)
         $familyGroupId = session('registration_family_group_id', 1);
 
-        $user = User::where('dni', $validated['dni'])->first();
+        $user = null;
+        $rawIdentifier = $validated['phone'];
+        $migratedDni = $request->input('migrated_dni');
+
+        if (!empty($migratedDni)) {
+            $user = User::where('dni', $migratedDni)->first();
+        }
+
+        // Si el identificador es de 8 dígitos, puede ser un DNI
+        if (!$user && strlen($rawIdentifier) === 8) {
+            $user = User::where('dni', $rawIdentifier)->first();
+        }
+
+        if (!$user) {
+            $user = User::where('phone', $rawIdentifier)->first();
+        }
 
         if ($user) {
-            // Usuario ya registrado anteriormente en la base de datos
+            // Usuario ya registrado anteriormente en la base de datos (o migrando desde DNI)
             $updateData = [
                 'name' => $validated['name'],
                 'password' => Hash::make($validated['password']),
                 'family_group_id' => $familyGroupId,
+                'family_id' => null,
             ];
+
+            if (strlen($rawIdentifier) === 9) {
+                $updateData['phone'] = $rawIdentifier;
+            } elseif (strlen($rawIdentifier) === 8 && empty($user->dni)) {
+                $updateData['dni'] = $rawIdentifier;
+            }
 
             if (!empty($validated['email'])) {
                 $updateData['email'] = $validated['email'];
@@ -74,17 +174,26 @@ class UserController extends Controller
 
             $user->update($updateData);
 
-            // Reemplazar sugerencias de regalos para la nueva edición
-            $user->giftSuggestions()->delete();
+            // Reemplazar solo sugerencias de la familia actual si existieran (nunca borrar años pasados)
+            GiftSuggestion::where('user_id', $user->id)
+                ->where('family_group_id', $familyGroupId)
+                ->delete();
         } else {
             // Nuevo usuario
+            $isNineDigits = (strlen($rawIdentifier) === 9);
             $user = User::create([
                 'name' => $validated['name'],
-                'dni' => $validated['dni'],
+                'phone' => $isNineDigits ? $rawIdentifier : null,
+                'dni' => !$isNineDigits ? $rawIdentifier : null,
                 'email' => $validated['email'] ?? null,
                 'password' => Hash::make($validated['password']),
                 'family_group_id' => $familyGroupId,
             ]);
+        }
+
+        $targetFamily = \App\Models\FamilyGroup::find($familyGroupId);
+        if ($targetFamily) {
+            $targetFamily->users()->syncWithoutDetaching([$user->id]);
         }
 
         if ($request->hasFile('profile_photo_path')) {
@@ -110,11 +219,16 @@ class UserController extends Controller
             }
         }
 
-        foreach ($validated['gift_suggestions'] as $suggestion) {
-            GiftSuggestion::create([
-                'user_id' => $user->id,
-                'suggestion' => $suggestion,
-            ]);
+        if (!empty($validated['gift_suggestions'])) {
+            foreach ($validated['gift_suggestions'] as $suggestion) {
+                if (!empty($suggestion)) {
+                    GiftSuggestion::create([
+                        'user_id' => $user->id,
+                        'family_group_id' => $familyGroupId,
+                        'suggestion' => $suggestion,
+                    ]);
+                }
+            }
         }
 
         session()->forget('temp_profile_image');
@@ -125,7 +239,7 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        if (!$user->familyGroup->canEditProfile()) {
+        if (!$user->familyGroup || !$user->familyGroup->canEditProfile()) {
             return back()->with('error', 'Ya no es posible editar tu perfil.');
         }
 
@@ -161,14 +275,20 @@ class UserController extends Controller
         }
 
         // Handle gift suggestions update
-        // Collect old reference images before deleting
+        // Collect old reference images before deleting FOR CURRENT FAMILY ONLY
+        $currentFamilySuggestions = GiftSuggestion::where('user_id', $user->id)
+            ->where('family_group_id', $user->family_group_id)
+            ->get();
+
         $oldImages = [];
-        foreach ($user->giftSuggestions as $index => $suggestion) {
+        foreach ($currentFamilySuggestions as $index => $suggestion) {
             $oldImages[$index] = $suggestion->reference_image_path;
         }
         
-        // Delete existing suggestions and create new ones
-        $user->giftSuggestions()->delete();
+        // Delete existing suggestions ONLY for the current family (never delete other years/families)
+        GiftSuggestion::where('user_id', $user->id)
+            ->where('family_group_id', $user->family_group_id)
+            ->delete();
         
         $tempGiftImages = session('temp_gift_images', []);
         
@@ -203,6 +323,7 @@ class UserController extends Controller
         
             GiftSuggestion::create([
                 'user_id' => $user->id,
+                'family_group_id' => $user->family_group_id,
                 'suggestion' => $suggestion,
                 'reference_image_path' => $referenceImagePath,
             ]);
@@ -217,37 +338,83 @@ class UserController extends Controller
         return redirect()->route('user.profile')->with('success', 'Tu perfil se actualizó con éxito.');
     }
 
-    public function profile()
+    public function profile(Request $request)
     {
         $user = Auth::user();
-        $familyGroup = $user->familyGroup->load(['users' => fn($q) => $q->inRandomOrder()]);
 
-        // Usar fechas de la familia del usuario
+        // Asegurar que el usuario esté en family_group_user para su family_group_id actual
+        if ($user->family_group_id) {
+            $user->familyGroups()->syncWithoutDetaching([$user->family_group_id]);
+        }
+
+        $userFamilies = $user->familyGroups()->orderBy('year', 'desc')->get();
+
+        $selectedFamilyId = $request->get('family_group_id');
+        $familyGroup = null;
+
+        if ($selectedFamilyId && $userFamilies->contains('id', (int) $selectedFamilyId)) {
+            $familyGroup = $userFamilies->firstWhere('id', (int) $selectedFamilyId);
+        } else {
+            $familyGroup = $user->familyGroup;
+            if (!$familyGroup && $userFamilies->isNotEmpty()) {
+                $familyGroup = $userFamilies->first();
+                $user->update(['family_group_id' => $familyGroup->id]);
+            }
+        }
+
+        if ($familyGroup) {
+            $familyGroup->load(['users' => fn($q) => $q->orderBy('name', 'asc')]);
+        }
+
+        // Cargar sugerencias del usuario estrictamente para esta familia seleccionada
+        $userGiftSuggestions = GiftSuggestion::where('user_id', $user->id)
+            ->where('family_group_id', $familyGroup ? $familyGroup->id : null)
+            ->get();
+        $user->setRelation('giftSuggestions', $userGiftSuggestions);
+
+        // Usar fechas de la familia
         $now = new \DateTime();
-        $isRevealed = $familyGroup->isRevealed();
-        $canEditProfile = $familyGroup->canEditProfile();
+        $isRevealed = $familyGroup ? $familyGroup->isRevealed() : false;
+        // Solo se puede editar si es la familia activa del usuario y la fecha límite no ha vencido
+        $canEditProfile = $familyGroup ? ($familyGroup->canEditProfile() && $familyGroup->id === $user->family_group_id) : true;
+        $isPastYear = $familyGroup && $familyGroup->year < (int) date('Y');
 
         $secretSanta = null;
-        if ($isRevealed) {
+        if ($isRevealed && $familyGroup) {
             $assignment = SecretSantaAssignment::where('giver_id', $user->id)
-                ->where('family_group_id', $user->family_group_id)
+                ->where('family_group_id', $familyGroup->id)
                 ->with('receiver')
                 ->first();
             
             if ($assignment) {
                 $secretSanta = $assignment->receiver;
                 
-                // Format gift suggestions to make URLs clickable
-                foreach ($secretSanta->giftSuggestions as $suggestion) {
+                // Cargar sugerencias del amigo secreto estrictamente para esta familia (sin mezclar años pasados)
+                $secretSantaSuggestions = GiftSuggestion::where('user_id', $secretSanta->id)
+                    ->where('family_group_id', $familyGroup->id)
+                    ->get();
+
+                foreach ($secretSantaSuggestions as $suggestion) {
                     $suggestion->formatted_suggestion = $this->formatSuggestion($suggestion->suggestion);
                 }
+                $secretSanta->setRelation('giftSuggestions', $secretSantaSuggestions);
             }
         }
 
-        $revealDateJs = $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
-        $profileEditEndDate = $familyGroup->profile_edit_end_date;
+        $revealDateJs = $familyGroup && $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
+        $profileEditEndDate = $familyGroup ? $familyGroup->profile_edit_end_date : null;
 
-        return view('user.profile', compact('user', 'secretSanta', 'isRevealed', 'revealDateJs', 'canEditProfile', 'profileEditEndDate', 'familyGroup'));
+        return view('user.profile', compact(
+            'user',
+            'secretSanta',
+            'isRevealed',
+            'revealDateJs',
+            'canEditProfile',
+            'profileEditEndDate',
+            'familyGroup',
+            'isPastYear',
+            'userFamilies'
+        ));
     }
 
     public function tempUpload(Request $request)

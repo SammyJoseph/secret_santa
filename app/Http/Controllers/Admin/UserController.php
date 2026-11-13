@@ -67,6 +67,10 @@ class UserController extends Controller
                 })->orWhere(function ($oq) use ($selectedYear) {
                     $oq->whereNull('family_group_id')
                        ->whereYear('created_at', $selectedYear);
+                })->orWhereHas('secretSantaAssignments', function ($aq) use ($selectedYear) {
+                    $aq->whereHas('familyGroup', function ($afq) use ($selectedYear) {
+                        $afq->where('year', $selectedYear);
+                    });
                 });
             });
         }
@@ -92,7 +96,7 @@ class UserController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        $existingUsers = User::select('id', 'name', 'dni', 'email', 'profile_photo_path', 'funny_profile_photo_path', 'family_group_id', 'nickname')
+        $existingUsers = User::select('id', 'name', 'dni', 'phone', 'email', 'profile_photo_path', 'funny_profile_photo_path', 'family_group_id', 'nickname')
             ->with('familyGroup:id,name,year')
             ->orderBy('name', 'asc')
             ->get();
@@ -105,11 +109,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = User::where('dni', $request->dni)->first();
+        $identifier = trim($request->dni);
+        $user = User::where('phone', $identifier)->orWhere('dni', $identifier)->first();
 
         $request->validate([
             'name' => 'required|string|min:2|max:255',
-            'dni' => 'required|string|digits:8',
+            'dni' => 'required|string|regex:/^\d{8,9}$/',
             'family_group_id' => 'required|exists:family_groups,id',
             'email' => 'nullable|email|max:255',
             'nickname' => 'nullable|string|max:255',
@@ -117,8 +122,8 @@ class UserController extends Controller
             'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
         ], [
             'name.required' => 'El nombre es obligatorio.',
-            'dni.required' => 'El DNI es obligatorio.',
-            'dni.digits' => 'El DNI debe contener exactamente 8 dígitos.',
+            'dni.required' => 'El Celular o DNI es obligatorio.',
+            'dni.regex' => 'Debe contener 9 dígitos (celular) u 8 dígitos (DNI).',
             'family_group_id.required' => 'Debes seleccionar una familia.',
             'family_group_id.exists' => 'La familia seleccionada no es válida.',
             'password.required' => 'La contraseña es obligatoria para un usuario nuevo.',
@@ -131,12 +136,15 @@ class UserController extends Controller
             return back()->withInput()->with('error', 'No se pueden agregar participantes a una familia cuyo sorteo ya ha sido realizado.');
         }
 
+        $isPhone = strlen($identifier) === 9;
+
         if ($user) {
             // Usuario ya existe en la base de datos
             if ($user->family_group_id) {
                 $currentFamily = $user->familyGroup;
                 if ($currentFamily && $currentFamily->year == $targetFamily->year && $currentFamily->id != $targetFamily->id) {
-                    return back()->withInput()->with('error', "El usuario {$user->name} (DNI {$user->dni}) ya está registrado en la familia '{$currentFamily->name}' para el año {$targetFamily->year}.");
+                    $userDisplayId = $user->phone ?? $user->dni;
+                    return back()->withInput()->with('error', "El usuario {$user->name} ({$userDisplayId}) ya está registrado en la familia '{$currentFamily->name}' para el año {$targetFamily->year}.");
                 }
             }
 
@@ -144,7 +152,12 @@ class UserController extends Controller
             $updateData = [
                 'name' => $request->name,
                 'family_group_id' => $targetFamily->id,
+                'family_id' => null,
             ];
+
+            if ($isPhone) {
+                $updateData['phone'] = $identifier;
+            }
 
             if ($request->filled('email')) {
                 $updateData['email'] = $request->email;
@@ -157,6 +170,7 @@ class UserController extends Controller
             }
 
             $user->update($updateData);
+            $targetFamily->users()->syncWithoutDetaching([$user->id]);
 
             if ($request->hasFile('profile_photo_path')) {
                 $this->saveProfileImage($user, $request->file('profile_photo_path'));
@@ -169,7 +183,8 @@ class UserController extends Controller
         // Crear nuevo usuario desde cero
         $userData = [
             'name' => $request->name,
-            'dni' => $request->dni,
+            'phone' => $isPhone ? $identifier : null,
+            'dni' => !$isPhone ? $identifier : null,
             'email' => $request->email ?? null,
             'nickname' => $request->nickname ?? null,
             'family_group_id' => $targetFamily->id,
@@ -177,6 +192,7 @@ class UserController extends Controller
         ];
 
         $newUser = User::create($userData);
+        $targetFamily->users()->syncWithoutDetaching([$newUser->id]);
 
         if ($request->hasFile('profile_photo_path')) {
             $this->saveProfileImage($newUser, $request->file('profile_photo_path'));
@@ -205,20 +221,31 @@ class UserController extends Controller
         $isRevealed = $familyGroup && $familyGroup->isRevealed();
         
         $secretSanta = null;
-        if ($isRevealed) {
+        if ($isRevealed && $familyGroup) {
             $assignment = \App\Models\SecretSantaAssignment::where('giver_id', $user->id)
-                ->where('family_group_id', $user->family_group_id)
+                ->where('family_group_id', $familyGroup->id)
                 ->with('receiver')
                 ->first();
             
             if ($assignment) {
                 $secretSanta = $assignment->receiver;
+                // Cargar estrictamente las sugerencias de la familia asignada (sin mezclar otros años)
+                $secretSantaSuggestions = \App\Models\GiftSuggestion::where('user_id', $secretSanta->id)
+                    ->where('family_group_id', $familyGroup->id)
+                    ->get();
+                $secretSanta->setRelation('giftSuggestions', $secretSantaSuggestions);
             }
         }
 
+        // Cargar sugerencias del usuario para esta familia
+        $userGiftSuggestions = \App\Models\GiftSuggestion::where('user_id', $user->id)
+            ->where('family_group_id', $familyGroup ? $familyGroup->id : null)
+            ->get();
+        $user->setRelation('giftSuggestions', $userGiftSuggestions);
+
         // Format dates for JavaScript (admin doesn't need edit limits)
         $revealDateJs = $familyGroup && $familyGroup->reveal_date ? $familyGroup->reveal_date->format('Y-m-d\TH:i:s') : null;
-        $profileEditEndDate = $familyGroup->profile_edit_end_date;
+        $profileEditEndDate = $familyGroup ? $familyGroup->profile_edit_end_date : null;
 
         // Pass additional flag to indicate admin view
         $isAdminView = true;
@@ -231,6 +258,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $user->load(['familyGroup', 'allGiftSuggestions.familyGroup']);
         $users = User::with('secretSantaAssignment.receiver')->orderBy('created_at', 'desc')->get();
         return view('admin.users.edit', compact('user', 'users'));
     }

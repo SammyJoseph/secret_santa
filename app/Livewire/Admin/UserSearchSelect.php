@@ -27,14 +27,15 @@ class UserSearchSelect extends Component
         if ($user) {
             $this->selectedUserId = $user->id;
             $this->selectedUserName = $user->name;
-            $this->selectedUserDni = $user->dni;
+            $this->selectedUserDni = $user->phone ?? $user->dni;
             $this->search = '';
 
             if ($dispatch) {
                 $this->dispatch('user-selected', user: [
                     'id' => $user->id,
                     'name' => $user->name,
-                    'dni' => $user->dni,
+                    'dni' => $user->phone ?? $user->dni,
+                    'phone' => $user->phone ?? '',
                     'nickname' => $user->nickname ?? '',
                     'email' => $user->email ?? '',
                     'profile_photo_url' => $user->profile_photo_url,
@@ -65,11 +66,11 @@ class UserSearchSelect extends Component
     #[On('select-user-by-dni')]
     public function handleSelectByDni(string $dni)
     {
-        $user = User::where('dni', $dni)->first();
+        $user = User::where('phone', $dni)->orWhere('dni', $dni)->first();
         if ($user) {
             $this->selectedUserId = $user->id;
             $this->selectedUserName = $user->name;
-            $this->selectedUserDni = $user->dni;
+            $this->selectedUserDni = $user->phone ?? $user->dni;
             $this->search = '';
         }
     }
@@ -82,6 +83,7 @@ class UserSearchSelect extends Component
             ->when(filled($term), function ($query) use ($term) {
                 $query->where(function ($q) use ($term) {
                     $q->where('name', 'like', "%{$term}%")
+                      ->orWhere('phone', 'like', "%{$term}%")
                       ->orWhere('dni', 'like', "%{$term}%")
                       ->orWhere('nickname', 'like', "%{$term}%");
                 });
