@@ -292,41 +292,51 @@ class UserController extends Controller
         
         $tempGiftImages = session('temp_gift_images', []);
         
-        foreach ($validated['gift_suggestions'] as $index => $suggestion) {
-            $referenceImagePath = null;
-        
-            // Check if there's a temp image for this suggestion
-            if (isset($tempGiftImages[$index])) {
-                $tempFilename = $tempGiftImages[$index];
-                $tempPath = storage_path('app/public/temp/' . $tempFilename);
-        
-                if (file_exists($tempPath)) {
-                    // Move temp image to permanent storage with resizing
-                    $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.jpg';
+        if (!empty($validated['gift_suggestions']) && is_array($validated['gift_suggestions'])) {
+            foreach ($validated['gift_suggestions'] as $index => $suggestion) {
+                $suggestionText = is_string($suggestion) ? trim($suggestion) : '';
+                $hasTempImage = isset($tempGiftImages[$index]);
 
-                    // Resize image to 600px width maintaining aspect ratio
-                    $manager = new ImageManager(new Driver());
-                    $image = $manager->read($tempPath);
-                    $image->scale(width: 600);
-
-                    // Always save as JPEG to avoid WebP encoder issues
-                    Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-
-                    $referenceImagePath = $filename;
-                    // Clean up temp file
-                    unlink($tempPath);
+                // If user didn't write anything and didn't upload a new image, skip (empty slot)
+                if ($suggestionText === '' && !$hasTempImage) {
+                    continue;
                 }
-            } elseif (isset($oldImages[$index])) {
-                // Preserve existing image if no new temp image
-                $referenceImagePath = $oldImages[$index];
+
+                $referenceImagePath = null;
+            
+                // Check if there's a temp image for this suggestion
+                if ($hasTempImage) {
+                    $tempFilename = $tempGiftImages[$index];
+                    $tempPath = storage_path('app/public/temp/' . $tempFilename);
+            
+                    if (file_exists($tempPath)) {
+                        // Move temp image to permanent storage with resizing
+                        $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.jpg';
+
+                        // Resize image to 600px width maintaining aspect ratio
+                        $manager = new ImageManager(new Driver());
+                        $image = $manager->read($tempPath);
+                        $image->scale(width: 600);
+
+                        // Always save as JPEG to avoid WebP encoder issues
+                        Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+
+                        $referenceImagePath = $filename;
+                        // Clean up temp file
+                        unlink($tempPath);
+                    }
+                } elseif (isset($oldImages[$index])) {
+                    // Preserve existing image if no new temp image
+                    $referenceImagePath = $oldImages[$index];
+                }
+            
+                GiftSuggestion::create([
+                    'user_id' => $user->id,
+                    'family_group_id' => $user->family_group_id,
+                    'suggestion' => $suggestionText !== '' ? $suggestionText : 'Sugerencia de regalo',
+                    'reference_image_path' => $referenceImagePath,
+                ]);
             }
-        
-            GiftSuggestion::create([
-                'user_id' => $user->id,
-                'family_group_id' => $user->family_group_id,
-                'suggestion' => $suggestion,
-                'reference_image_path' => $referenceImagePath,
-            ]);
         }
 
         session()->forget('temp_gift_images');

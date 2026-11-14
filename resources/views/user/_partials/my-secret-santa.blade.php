@@ -11,23 +11,37 @@
             } elseif ($secretSanta->profile_photo_path) {
                 $ssProfileSrc = Storage::url($secretSanta->profile_photo_path);
             }
+
+            $validSuggestions = $secretSanta->giftSuggestions ? $secretSanta->giftSuggestions->filter(function($s) {
+                return !empty(trim($s->suggestion ?? '')) || !empty($s->reference_image_path);
+            }) : collect();
         @endphp
         <img id="secret-friend-preview" class="w-full h-full object-cover rounded-full" src="{{ $ssProfileSrc }}" alt="Foto de {{ $secretSanta->name }}">
     </div>
-    <div class="mb-4">
-        <p class="text-sm font-semibold text-gray-600 mb-4">A {{ $secretSanta->nickname ?: $secretSanta->name }} le gustaría recibir cualquiera de estas opciones:</p>
-        <div class="space-y-3">
-            @foreach($secretSanta->giftSuggestions as $suggestion)
-                <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-3">
-                    <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer" @click="showModal = true; modalImage = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}'">
-                        <img class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+    <div class="mb-4 w-full">
+        @if($validSuggestions->isNotEmpty())
+            <p class="text-sm font-semibold text-gray-600 mb-4 text-center">
+                A {{ $secretSanta->nickname ?: $secretSanta->name }} le gustaría recibir {{ $validSuggestions->count() > 1 ? 'cualquiera de estas opciones:' : 'esta opción:' }}
+            </p>
+            <div class="space-y-3">
+                @foreach($validSuggestions as $suggestion)
+                    <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-3">
+                        <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer" @click="showModal = true; modalImage = '{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}'">
+                            <img class="w-full h-full object-cover rounded-lg" src="{{ $suggestion->reference_image_path ? asset('storage/' . $suggestion->reference_image_path) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-700">{!! $suggestion->formatted_suggestion ?? e($suggestion->suggestion) !!}</p>
+                        </div>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-sm text-gray-700">{!! $suggestion->formatted_suggestion ?? e($suggestion->suggestion) !!}</p>
-                    </div>
-                </div>
-            @endforeach
-        </div>
+                @endforeach
+            </div>
+        @else
+            <div class="bg-gray-50 rounded-lg p-5 text-center border border-dashed border-gray-200 my-4">
+                <span class="text-2xl mb-1 block">🎁</span>
+                <p class="text-sm font-medium text-gray-600">No escribió una sugerencia</p>
+                <p class="text-xs text-gray-400 mt-1">¡Sorpréndele con un buen detalle navideño!</p>
+            </div>
+        @endif
     </div>
     <div class="text-center text-[#146B3A] text-sm font-semibold">
         ¡Mucha suerte en tu búsqueda del regalo perfecto! 🎁

@@ -23,8 +23,8 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string|min:3|max:255',
-            'gift_suggestions' => 'required|array|min:3|max:3',
-            'gift_suggestions.*' => 'required|string|max:255',
+            'gift_suggestions' => 'nullable|array',
+            'gift_suggestions.*' => 'nullable|string|max:255',
             'profile_photo_path' => 'nullable|mimes:jpeg,png,jpg,gif,webp,avif|max:10240',
         ];
     }

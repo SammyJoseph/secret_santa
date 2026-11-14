@@ -159,19 +159,13 @@
                         console.error('Upload failed:', error);
                         // Reset to default if upload fails
                         const existingImagePath = '{{ $user->giftSuggestions[$index]->reference_image_path ?? '' }}';
-                        giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '';
-                        if (!giftPreview{{ $index }}.src) {
-                            giftPreview{{ $index }}.parentElement.classList.add('hidden');
-                        }
+                        giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '{{ asset('assets/images/no-image.jpg') }}';
                     });
                 } else {
                     // If no file selected, reset to default
                     const existingImagePath = '{{ $user->giftSuggestions[$index]->reference_image_path ?? '' }}';
-                    giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '';
+                    giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '{{ asset('assets/images/no-image.jpg') }}';
                     tempGiftImage{{ $index }}.value = '';
-                    if (!giftPreview{{ $index }}.src) {
-                        giftPreview{{ $index }}.parentElement.classList.add('hidden');
-                    }
                 }
             });
         @endfor
