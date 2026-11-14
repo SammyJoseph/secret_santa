@@ -37,7 +37,7 @@
             </div>
         @else
             <div class="bg-gray-50 rounded-lg p-5 text-center border border-dashed border-gray-200 my-4">
-                <span class="text-2xl mb-1 block">🎁</span>
+                <span class="text-2xl mb-1 block">❓</span>
                 <p class="text-sm font-medium text-gray-600">No escribió una sugerencia</p>
                 <p class="text-xs text-gray-400 mt-1">¡Sorpréndele con un buen detalle navideño!</p>
             </div>
@@ -47,7 +47,7 @@
         ¡Mucha suerte en tu búsqueda del regalo perfecto! 🎁
     </div>   
     
-    <!-- Slider of participants (mobile only) -->
+    <!-- Slider of participants -->
     @include('user._partials.profiles-slider')
 </div>
 @else
