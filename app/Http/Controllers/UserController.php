@@ -19,6 +19,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\PngEncoder;
 use Intervention\Image\Encoders\WebPEncoder;
+use App\Services\ArtisamNotificationService;
 
 class UserController extends Controller
 {
@@ -320,6 +321,21 @@ class UserController extends Controller
 
         session()->forget(['temp_profile_image', 'temp_gift_images']);
         $user->touch(); // Update the updated_at timestamp of the user
+
+        // Notificar al admin sobre la actualización del perfil
+        $userName = $user->nickname ?: $user->name;
+        $familyName = $user->familyGroup?->name;
+        $familyText = $familyName ? " ({$familyName})" : '';
+
+        app(ArtisamNotificationService::class)->send(
+            title: 'Perfil actualizado',
+            message: "{$userName}{$familyText} modificó su perfil.",
+            options: [
+                'url' => route('admin.users.profile', $user->id),
+                'url_title' => 'Ver perfil',
+                'category' => 'profile_update',
+            ]
+        );
 
         return redirect()->route('user.profile')->with('success', 'Tu perfil se actualizó con éxito.');
     }

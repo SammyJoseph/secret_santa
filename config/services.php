@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'artisam' => [
+        'base_url' => env('NOTIFICATIONS_BASE_URL', 'https://notifications.artisam.dev'),
+        'api_key' => env('NOTIFICATIONS_API_KEY'),
+        'tenant_slug' => env('NOTIFICATIONS_TENANT_SLUG'),
+    ],
+
 ];
