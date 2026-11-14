@@ -415,7 +415,8 @@ class UserController extends Controller
 
         $year = $user->familyGroup ? $user->familyGroup->year : date('Y');
 
-        return redirect()->route('admin.users.index', ['year' => $year])->with('updated', $user->name);
+        return redirect()->route('admin.users.index', ['year' => $year])
+            ->with('updated', "El usuario {$user->name} fue actualizado con éxito.");
     }
 
     /**
