@@ -28,13 +28,12 @@
                         <span class="focus:outline-none text-white text-sm py-2 px-4 rounded-full bg-[#F8B229] hover:bg-amber-400 hover:shadow-lg">Cambiar Foto</span>
                         <input @disabled(!$canEditProfile) type="file" name="profile_photo_path" id="profile-image-input" class="hidden" accept="image/*">
                     </label>
-                    <input type="hidden" name="temp_image_filename" id="temp-image-filename" value="{{ session('temp_profile_image') }}">
                 </div>
                 @error('profile_photo_path')
                     <p class="text-red-500 text-xs">{{ $message }}</p>
                 @enderror
             </div>
-            <div class="lg:flex flex-row lg:space-x-4 w-full text-xs">
+            <div class="flex flex-row space-x-4 w-full text-xs">
                 <div class="space-y-2 w-full text-xs mb-3 lg:mb-0">
                     <label class="font-semibold text-gray-600 py-2">Nombre</label>
                     <input @disabled(!$canEditProfile)
@@ -62,7 +61,6 @@
                         $suggestion = $user->giftSuggestions[$index] ?? null;
                         $suggestionValue = $suggestion ? $suggestion->suggestion : '';
                         $referenceImagePath = $suggestion ? $suggestion->reference_image_path : null;
-                        $tempGiftImageValue = session('temp_gift_images')[$index] ?? '';
                         
                         if ($index == 0) {
                             $themeColor = '#BB2528';
@@ -72,12 +70,75 @@
                             $themeColor = '#414f4f';
                         }
                     @endphp
-                    <div class="space-y-2 w-full text-xs mb-6">
-                        <label class=" font-semibold text-[{{ $themeColor }}] py-2">Mi sugerencia de regalo {{ $index + 1 }} <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
-                        <div class="flex flex-wrap items-stretch w-full mb-4 relative">
+                    <div x-data="{
+                        hasImage: {{ $referenceImagePath ? 'true' : 'false' }},
+                        imageUrl: '{{ $referenceImagePath ? asset('storage/' . $referenceImagePath) : asset('assets/images/no-image.jpg') }}',
+                        removed: false,
+                        onFileSelected(e) {
+                            const file = e.target.files[0];
+                            if (!file) return;
+
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                const dataUrl = event.target.result;
+                                this.imageUrl = dataUrl;
+                                this.hasImage = true;
+                                this.removed = false;
+
+                                // Normalizar y sanitizar imagen a JPEG con nombre limpio para evitar bloqueos de WAF/ModSecurity
+                                const img = new Image();
+                                img.onload = () => {
+                                    try {
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        const maxDim = 1200;
+                                        if (width > maxDim || height > maxDim) {
+                                            if (width > height) {
+                                                height = Math.round((height * maxDim) / width);
+                                                width = maxDim;
+                                            } else {
+                                                width = Math.round((width * maxDim) / height);
+                                                height = maxDim;
+                                            }
+                                        }
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.fillStyle = '#FFFFFF';
+                                        ctx.fillRect(0, 0, width, height);
+                                        ctx.drawImage(img, 0, 0, width, height);
+
+                                        canvas.toBlob((blob) => {
+                                            if (blob && window.DataTransfer && this.$refs.fileInput) {
+                                                const cleanFile = new File([blob], 'sugerencia_{{ $index + 1 }}.jpg', { type: 'image/jpeg' });
+                                                const dt = new DataTransfer();
+                                                dt.items.add(cleanFile);
+                                                this.$refs.fileInput.files = dt.files;
+                                            }
+                                        }, 'image/jpeg', 0.90);
+                                    } catch (err) {
+                                        console.warn('Normalización de imagen omitida:', err);
+                                    }
+                                };
+                                img.src = dataUrl;
+                            };
+                            reader.readAsDataURL(file);
+                        },
+                        removeImage() {
+                            if (this.$refs.fileInput) {
+                                this.$refs.fileInput.value = '';
+                            }
+                            this.imageUrl = '{{ asset('assets/images/no-image.jpg') }}';
+                            this.hasImage = false;
+                            this.removed = true;
+                        }
+                    }" class="space-y-2 w-full text-xs mb-5">
+                        <label class="font-semibold text-[{{ $themeColor }}] py-2">Mi sugerencia de regalo {{ $index + 1 }}</label>
+                        <div class="flex flex-wrap items-stretch w-full mb-2 relative">
                             <div class="flex">
                                 <span
-                                    class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[{{ $themeColor }}] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[{{ $themeColor }}] justify-center items-center  text-xl rounded-lg text-white">
+                                    class="flex items-center leading-normal bg-grey-lighter border-1 rounded-r-none border border-r-0 border-[{{ $themeColor }}] px-3 whitespace-no-wrap text-grey-dark text-sm w-12 h-10 bg-[{{ $themeColor }}] justify-center items-center text-xl rounded-lg text-white">
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80v-440H80v-240h208q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q23 0 43 8.5t37 23.5q17-16 37-24t43-8q50 0 85 35t35 85q0 11-2 20.5t-6 19.5h208v240h-80v440H160Zm400-760q-17 0-28.5 11.5T520-800q0 17 11.5 28.5T560-760q17 0 28.5-11.5T600-800q0-17-11.5-28.5T560-840Zm-200 40q0 17 11.5 28.5T400-760q17 0 28.5-11.5T440-800q0-17-11.5-28.5T400-840q-17 0-28.5 11.5T360-800ZM160-680v80h280v-80H160Zm280 520v-360H240v360h200Zm80 0h200v-360H520v360Zm280-440v-80H520v80h280Z"/></svg>
                                 </span>
                             </div>
@@ -85,17 +146,54 @@
                                 class="flex-shrink flex-grow flex-auto leading-normal w-px flex-1 bg-gray-50 border border-l-0 border-gray-200 rounded-lg rounded-l-none px-3 relative focus:border-blue focus:shadow text-sm focus:ring-1 focus:ring-[#F8B229] focus:border-[#F8B229] focus:outline-none placeholder-gray-400 resize-none"
                                 placeholder="{{ $index == 0 ? 'Me gustaría recibir...' : 'O también me gustaría recibir...' }}" autocomplete="off" style="field-sizing: content; min-height: 2.5rem;">{{ old('gift_suggestions.' . $index, $suggestionValue) }}</textarea>
                         </div>
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 flex-none rounded-lg overflow-hidden cursor-pointer mr-2" @click="showModal = true; modalImage = document.getElementById('gift-preview-{{ $index }}').src">
-                                <img id="gift-preview-{{ $index }}" class="w-full h-full object-cover rounded-lg" src="{{ $referenceImagePath ? asset('storage/' . $referenceImagePath) : asset('assets/images/no-image.jpg') }}" alt="Imagen de referencia">
+
+                        {{-- Input de archivo y flag de eliminación --}}
+                        <input x-ref="fileInput" @disabled(!$canEditProfile) type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*" @change="onFileSelected($event)">
+                        <input type="hidden" name="remove_reference_image_{{ $index }}" :value="removed ? '1' : '0'">
+
+                        {{-- Sección de imagen referencial --}}
+                        <div class="pt-0.5">
+                            {{-- Estado sin imagen: Chip sutil y limpio --}}
+                            <div x-show="!hasImage" class="flex items-center">
+                                @if($canEditProfile)
+                                <label for="gift-image-input-{{ $index }}" class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-md cursor-pointer transition select-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span>Adjuntar foto referencial</span>
+                                </label>
+                                @endif
                             </div>
-                            <label class="cursor-pointer">
-                                <span class="focus:outline-none text-white text-xs py-1 px-3 rounded-full bg-[{{ $themeColor }}] hover:shadow-lg">Subir imagen referencial</span>
-                                <input @disabled(!$canEditProfile) type="file" name="reference_image_path_{{ $index }}" id="gift-image-input-{{ $index }}" class="hidden" accept="image/*">
-                            </label>
-                            <input type="hidden" name="temp_gift_image_{{ $index }}" id="temp-gift-image-{{ $index }}" value="{{ $tempGiftImageValue }}">
+
+                            {{-- Estado con imagen: Miniatura compacta + acciones Cambiar / Quitar --}}
+                            <div x-show="hasImage" class="flex items-center space-x-3" style="display: none;">
+                                <div class="relative group">
+                                    <div class="w-11 h-11 flex-none rounded-lg overflow-hidden border border-gray-200 cursor-pointer shadow-xs hover:ring-2 hover:ring-[#F8B229] transition"
+                                         @click="showModal = true; modalImage = imageUrl"
+                                         title="Clic para ver en tamaño grande">
+                                        <img :src="imageUrl" class="w-full h-full object-cover rounded-lg" alt="Foto referencial">
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2 text-xs">
+                                    @if($canEditProfile)
+                                    <label for="gift-image-input-{{ $index }}" class="font-medium text-gray-600 hover:text-gray-900 cursor-pointer hover:underline">
+                                        Cambiar
+                                    </label>
+                                    <span class="text-gray-300">•</span>
+                                    <button type="button" @click="removeImage()" class="font-medium text-red-500 hover:text-red-700 hover:underline">
+                                        Quitar
+                                    </button>
+                                    @else
+                                    <span class="text-gray-400 italic">Foto referencial adjunta</span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
+
                         @error('gift_suggestions.' . $index)
+                            <p class="text-red-500 text-xs">{{ $message }}</p>
+                        @enderror
+                        @error('reference_image_path_' . $index)
                             <p class="text-red-500 text-xs">{{ $message }}</p>
                         @enderror
                     </div>

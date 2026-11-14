@@ -253,25 +253,6 @@ class UserController extends Controller
         // Handle profile photo upload
         if ($request->hasFile('profile_photo_path')) {
             $this->saveProfileImage($user, $request->file('profile_photo_path'));
-        } elseif ($request->input('temp_image_filename')) {
-            // Move temp image to permanent storage with resizing
-            $tempFilename = $request->input('temp_image_filename');
-            $tempPath = storage_path('app/public/temp/' . $tempFilename);
-            if (file_exists($tempPath)) {
-                $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
-
-                // Resize temp image to 600px width maintaining aspect ratio
-                $manager = new ImageManager(new Driver());
-                $image = $manager->read($tempPath);
-                $image->scale(width: 600);
-
-                // Always save as JPEG to avoid WebP encoder issues
-                Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-
-                $user->update(['profile_photo_path' => $filename]);
-                // Clean up temp file
-                unlink($tempPath);
-            }
         }
 
         // Handle gift suggestions update
@@ -281,55 +262,46 @@ class UserController extends Controller
             ->get();
 
         $oldImages = [];
-        foreach ($currentFamilySuggestions as $index => $suggestion) {
+        foreach ($currentFamilySuggestions->values() as $index => $suggestion) {
             $oldImages[$index] = $suggestion->reference_image_path;
         }
-        
+
         // Delete existing suggestions ONLY for the current family (never delete other years/families)
         GiftSuggestion::where('user_id', $user->id)
             ->where('family_group_id', $user->family_group_id)
             ->delete();
-        
-        $tempGiftImages = session('temp_gift_images', []);
-        
+
+        $usedImages = [];
+
         if (!empty($validated['gift_suggestions']) && is_array($validated['gift_suggestions'])) {
             foreach ($validated['gift_suggestions'] as $index => $suggestion) {
                 $suggestionText = is_string($suggestion) ? trim($suggestion) : '';
-                $hasTempImage = isset($tempGiftImages[$index]);
+                $hasNewImage = $request->hasFile('reference_image_path_' . $index);
+                $isRemoved = $request->boolean('remove_reference_image_' . $index);
+                $hasOldImage = !empty($oldImages[$index]) && !$isRemoved;
 
-                // If user didn't write anything and didn't upload a new image, skip (empty slot)
-                if ($suggestionText === '' && !$hasTempImage) {
+                // If user didn't write anything and has no image (neither new nor old), skip (empty slot)
+                if ($suggestionText === '' && !$hasNewImage && !$hasOldImage) {
                     continue;
                 }
 
                 $referenceImagePath = null;
-            
-                // Check if there's a temp image for this suggestion
-                if ($hasTempImage) {
-                    $tempFilename = $tempGiftImages[$index];
-                    $tempPath = storage_path('app/public/temp/' . $tempFilename);
-            
-                    if (file_exists($tempPath)) {
-                        // Move temp image to permanent storage with resizing
-                        $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.jpg';
 
-                        // Resize image to 600px width maintaining aspect ratio
-                        $manager = new ImageManager(new Driver());
-                        $image = $manager->read($tempPath);
-                        $image->scale(width: 600);
-
-                        // Always save as JPEG to avoid WebP encoder issues
-                        Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-
-                        $referenceImagePath = $filename;
-                        // Clean up temp file
-                        unlink($tempPath);
-                    }
-                } elseif (isset($oldImages[$index])) {
-                    // Preserve existing image if no new temp image
+                if ($hasNewImage) {
+                    $referenceImagePath = $this->saveGiftImage(
+                        $user,
+                        (int) $index,
+                        $request->file('reference_image_path_' . $index),
+                        $oldImages[$index] ?? null
+                    );
+                } elseif ($hasOldImage) {
                     $referenceImagePath = $oldImages[$index];
                 }
-            
+
+                if ($referenceImagePath) {
+                    $usedImages[] = $referenceImagePath;
+                }
+
                 GiftSuggestion::create([
                     'user_id' => $user->id,
                     'family_group_id' => $user->family_group_id,
@@ -339,17 +311,23 @@ class UserController extends Controller
             }
         }
 
-        session()->forget('temp_gift_images');
-        $user->touch(); // Update the updated_at timestamp of the user
+        // Delete any discarded old images that were not reused
+        foreach ($oldImages as $oldImage) {
+            if ($oldImage && !in_array($oldImage, $usedImages) && Storage::disk('public')->exists($oldImage)) {
+                Storage::disk('public')->delete($oldImage);
+            }
+        }
 
-        session()->forget('temp_profile_image');
-        session()->forget('temp_gift_images');
+        session()->forget(['temp_profile_image', 'temp_gift_images']);
+        $user->touch(); // Update the updated_at timestamp of the user
 
         return redirect()->route('user.profile')->with('success', 'Tu perfil se actualizó con éxito.');
     }
 
     public function profile(Request $request)
     {
+        session()->forget(['temp_profile_image', 'temp_gift_images']);
+
         $user = Auth::user();
 
         // Asegurar que el usuario esté en family_group_user para su family_group_id actual
@@ -558,19 +536,49 @@ class UserController extends Controller
             // Generate a unique filename (always .jpg)
             $filename = 'profile-photos/' . $user->id . '_' . Str::random(10) . '.jpg';
 
-             // Resize image to 600px width maintaining aspect ratio
-             $manager = new ImageManager(new Driver());
-             $image = $manager->read($imageFile->getRealPath());
-             $image->scale(width: 600);
+            // Resize image to 600px width maintaining aspect ratio
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($imageFile->getRealPath());
+            $image->scale(width: 600);
 
-             // Always save as JPEG to avoid WebP encoder issues
-             Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+            // Always save as JPEG to avoid WebP encoder issues
+            Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
 
-             // Update user's profile_photo_path
-             $user->update(['profile_photo_path' => $filename]);
-         } catch (\Exception $e) {
-             // If upload fails, leave profile_photo_path as null
-             // You can log the error if needed
-         }
+            // Delete old profile photo if exists
+            if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+
+            // Update user's profile_photo_path
+            $user->update(['profile_photo_path' => $filename]);
+        } catch (\Exception $e) {
+            // If upload fails, leave profile_photo_path as null
+            // You can log the error if needed
+        }
+    }
+
+    private function saveGiftImage(User $user, int $index, $imageFile, ?string $oldPath = null): ?string
+    {
+        try {
+            // Generate a unique filename (always .jpg)
+            $filename = 'gift-suggestions/' . $user->id . '_' . $index . '_' . Str::random(10) . '.jpg';
+
+            // Resize image to 600px width maintaining aspect ratio
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($imageFile->getRealPath());
+            $image->scale(width: 600);
+
+            // Always save as JPEG to avoid WebP encoder issues
+            Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
+
+            // Delete old image if exists
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            return $filename;
+        } catch (\Exception $e) {
+            return $oldPath;
+        }
     }
 }

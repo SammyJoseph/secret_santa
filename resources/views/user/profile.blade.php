@@ -51,134 +51,61 @@
     <script>
         const profileInput = document.getElementById('profile-image-input');
         const profilePreview = document.getElementById('profile-preview');
-        const tempImageFilename = document.getElementById('temp-image-filename');
+        const defaultProfileSrc = '{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('assets/images/profile.jpg') }}';
 
-        // Function to update preview
-        function updatePreview(dataUrl) {
-            profilePreview.src = dataUrl;
-        }
-
-        // Load preview from temp image on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const tempFilename = tempImageFilename.value;
-            if (tempFilename) {
-                profilePreview.src = '{{ url("/temp-image") }}/' + tempFilename;
-            }
-
-            // Load gift image previews
-            @for($index = 0; $index < 3; $index++)
-                const tempGiftFilename{{ $index }} = document.getElementById('temp-gift-image-{{ $index }}').value;
-                if (tempGiftFilename{{ $index }}) {
-                    document.getElementById('gift-preview-{{ $index }}').src = '{{ url("/temp-image-gift") }}/' + tempGiftFilename{{ $index }};
-                    document.getElementById('gift-preview-{{ $index }}').parentElement.classList.remove('hidden');
-                }
-            @endfor
-        });
-
-        // Handle file selection with AJAX upload
-        profileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                // Show immediate preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    updatePreview(e.target.result);
-                };
-                reader.readAsDataURL(file);
-
-                // Upload to temp storage
-                const formData = new FormData();
-                formData.append('profile_photo_path', file);
-                formData.append('_token', '{{ csrf_token() }}');
-
-                fetch('{{ route("user.temp-upload") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.filename) {
-                        tempImageFilename.value = data.filename;
-                        // Update preview with uploaded image
-                        profilePreview.src = '{{ url("/temp-image") }}/' + data.filename;
-                    }
-                })
-                .catch(error => {
-                    console.error('Upload failed:', error);
-                    // Reset to default if upload fails
-                    profilePreview.src = '{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('assets/images/profile.jpg') }}';
-                });
-            } else {
-                // If no file selected, reset to default
-                profilePreview.src = '{{ $user->profile_photo_path ? asset('storage/' . $user->profile_photo_path) : asset('assets/images/profile.jpg') }}';
-                tempImageFilename.value = '';
-            }
-        });
-
-        // Handle gift image file selection with AJAX upload
-        @for($index = 0; $index < 3; $index++)
-            const giftInput{{ $index }} = document.getElementById('gift-image-input-{{ $index }}');
-            const giftPreview{{ $index }} = document.getElementById('gift-preview-{{ $index }}');
-            const tempGiftImage{{ $index }} = document.getElementById('temp-gift-image-{{ $index }}');
-
-            giftInput{{ $index }}.addEventListener('change', function(event) {
+        if (profileInput && profilePreview) {
+            profileInput.addEventListener('change', function(event) {
                 const file = event.target.files[0];
                 if (file) {
-                    // Show immediate preview
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        giftPreview{{ $index }}.src = e.target.result;
-                        giftPreview{{ $index }}.parentElement.classList.remove('hidden');
+                        const dataUrl = e.target.result;
+                        profilePreview.src = dataUrl;
+
+                        // Normalizar avatar a JPEG estándar con nombre limpio para evitar bloqueos de WAF/ModSecurity
+                        const img = new Image();
+                        img.onload = function() {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                let width = img.width;
+                                let height = img.height;
+                                const maxDim = 800;
+                                if (width > maxDim || height > maxDim) {
+                                    if (width > height) {
+                                        height = Math.round((height * maxDim) / width);
+                                        width = maxDim;
+                                    } else {
+                                        width = Math.round((width * maxDim) / height);
+                                        height = maxDim;
+                                    }
+                                }
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.fillStyle = '#FFFFFF';
+                                ctx.fillRect(0, 0, width, height);
+                                ctx.drawImage(img, 0, 0, width, height);
+
+                                canvas.toBlob(function(blob) {
+                                    if (blob && window.DataTransfer && profileInput) {
+                                        const cleanFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+                                        const dt = new DataTransfer();
+                                        dt.items.add(cleanFile);
+                                        profileInput.files = dt.files;
+                                    }
+                                }, 'image/jpeg', 0.90);
+                            } catch (err) {
+                                console.warn('Normalización de avatar omitida:', err);
+                            }
+                        };
+                        img.src = dataUrl;
                     };
                     reader.readAsDataURL(file);
-
-                    // Upload to temp storage
-                    const formData = new FormData();
-                    formData.append('reference_image_path', file);
-                    formData.append('_token', '{{ csrf_token() }}');
-
-                    fetch('{{ route("user.temp-upload-gift", $index) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.filename) {
-                            tempGiftImage{{ $index }}.value = data.filename;
-                            // Update preview with uploaded image
-                            giftPreview{{ $index }}.src = '{{ url("/temp-image-gift") }}/' + data.filename;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Upload failed:', error);
-                        // Reset to default if upload fails
-                        const existingImagePath = '{{ $user->giftSuggestions[$index]->reference_image_path ?? '' }}';
-                        giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '{{ asset('assets/images/no-image.jpg') }}';
-                    });
                 } else {
-                    // If no file selected, reset to default
-                    const existingImagePath = '{{ $user->giftSuggestions[$index]->reference_image_path ?? '' }}';
-                    giftPreview{{ $index }}.src = existingImagePath ? '{{ asset('storage/') }}/' + existingImagePath : '{{ asset('assets/images/no-image.jpg') }}';
-                    tempGiftImage{{ $index }}.value = '';
+                    profilePreview.src = defaultProfileSrc;
                 }
             });
-        @endfor
-
-        // Clear temp image on successful form submission (assuming no errors)
-        document.querySelector('form').addEventListener('submit', function() {
-            if (!@json($errors->any())) {
-                tempImageFilename.value = '';
-                @for($index = 0; $index < 3; $index++)
-                    document.getElementById('temp-gift-image-{{ $index }}').value = '';
-                @endfor
-            }
-        });
+        }
 
         // Countdown to reveal date from server
         function updateCountdown() {
