@@ -397,9 +397,15 @@ class UserController extends Controller
         $request->validate([
             'funny_profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
             'nickname' => 'nullable|string|max:255',
+            'remove_funny_profile_photo' => 'nullable|boolean',
         ]);
 
-        if ($request->hasFile('funny_profile_photo_path')) {
+        if ($request->boolean('remove_funny_profile_photo')) {
+            if ($user->funny_profile_photo_path && Storage::disk('public')->exists($user->funny_profile_photo_path)) {
+                Storage::disk('public')->delete($user->funny_profile_photo_path);
+            }
+            $user->update(['funny_profile_photo_path' => null]);
+        } elseif ($request->hasFile('funny_profile_photo_path')) {
             $this->saveFunnyProfileImage($user, $request->file('funny_profile_photo_path'));
         }
 
@@ -443,11 +449,34 @@ class UserController extends Controller
 
 
     /**
+     * Delete the funny profile photo (avatar) for the user.
+     */
+    public function deleteAvatar(User $user)
+    {
+        if ($user->funny_profile_photo_path && Storage::disk('public')->exists($user->funny_profile_photo_path)) {
+            Storage::disk('public')->delete($user->funny_profile_photo_path);
+        }
+
+        $user->update(['funny_profile_photo_path' => null]);
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return back()->with('success', 'Avatar eliminado correctamente.');
+    }
+
+    /**
      * Save the funny profile image for the user.
      */
     private function saveFunnyProfileImage(User $user, $imageFile): void
     {
         try {
+            // Delete old funny profile photo if it exists
+            if ($user->funny_profile_photo_path && Storage::disk('public')->exists($user->funny_profile_photo_path)) {
+                Storage::disk('public')->delete($user->funny_profile_photo_path);
+            }
+
             // Generate a unique filename
             $filename = 'funny-profile-photos/' . $user->id . '_' . Str::random(10) . '.' . $imageFile->getClientOriginalExtension();
 

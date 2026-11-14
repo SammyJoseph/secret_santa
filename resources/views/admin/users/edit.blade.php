@@ -13,9 +13,20 @@
                         @method('PUT')
                         <div class="relative mx-auto w-36 rounded-full">
                             <img id="profile-preview" class="mx-auto w-full aspect-square object-cover rounded-full cursor-pointer" src="{{ $user->funny_profile_photo_path ? Storage::url($user->funny_profile_photo_path) : ($user->profile_photo_path ? Storage::url($user->profile_photo_path) : asset('assets/images/profile.jpg')) }}" alt="Avatar de {{ $user->name }}" @click="showModal = true; modalImage = document.getElementById('profile-preview').src" />
-                            <label for="profile-image-input" class="absolute bottom-0 right-0 bg-[#F8B229] text-white text-xs py-1 px-2 rounded-full cursor-pointer hover:bg-amber-400">Cambiar</label>
+                            <button type="button"
+                                    id="btn-remove-avatar"
+                                    @click.stop
+                                    class="absolute top-0 right-0 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md cursor-pointer transition flex items-center justify-center border-2 border-white {{ $user->funny_profile_photo_path ? '' : 'hidden' }}"
+                                    title="Eliminar avatar y usar foto de perfil">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            <label for="profile-image-input" class="absolute bottom-0 right-0 bg-[#F8B229] text-white text-xs py-1 px-2 rounded-full cursor-pointer hover:bg-amber-400 shadow-sm transition">Cambiar</label>
                             <input type="file" id="profile-image-input" name="funny_profile_photo_path" class="hidden" accept="image/*">
+                            <input type="hidden" name="remove_funny_profile_photo" id="remove-funny-profile-photo" value="0">
                         </div>
+                        <p id="avatar-status-msg" class="text-xs text-amber-600 text-center mt-2 hidden font-medium">Avatar marcado para eliminar. Guarda los cambios para aplicar.</p>
                         @error('funny_profile_photo_path')
                             <p class="text-red-500 text-xs text-center mt-2">{{ $message }}</p>
                         @enderror
@@ -199,6 +210,11 @@
     <script>
         const profileInput = document.getElementById('profile-image-input');
         const profilePreview = document.getElementById('profile-preview');
+        const btnRemoveAvatar = document.getElementById('btn-remove-avatar');
+        const removeAvatarInput = document.getElementById('remove-funny-profile-photo');
+        const avatarStatusMsg = document.getElementById('avatar-status-msg');
+        const originalProfilePhotoUrl = @json($user->profile_photo_path ? Storage::url($user->profile_photo_path) : asset('assets/images/profile.jpg'));
+        const hasDbFunnyPhoto = {{ $user->funny_profile_photo_path ? 'true' : 'false' }};
 
         profileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -206,10 +222,43 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     profilePreview.src = e.target.result;
+                    if (btnRemoveAvatar) {
+                        btnRemoveAvatar.classList.remove('hidden');
+                    }
+                    if (removeAvatarInput) {
+                        removeAvatarInput.value = '0';
+                    }
+                    if (avatarStatusMsg) {
+                        avatarStatusMsg.classList.add('hidden');
+                    }
                 };
                 reader.readAsDataURL(file);
             }
         });
+
+        if (btnRemoveAvatar) {
+            btnRemoveAvatar.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                profileInput.value = '';
+                profilePreview.src = originalProfilePhotoUrl;
+
+                if (hasDbFunnyPhoto) {
+                    removeAvatarInput.value = '1';
+                    if (avatarStatusMsg) {
+                        avatarStatusMsg.classList.remove('hidden');
+                    }
+                } else {
+                    removeAvatarInput.value = '0';
+                    if (avatarStatusMsg) {
+                        avatarStatusMsg.classList.add('hidden');
+                    }
+                }
+
+                btnRemoveAvatar.classList.add('hidden');
+            });
+        }
 
         // Reset link generation
         const generateBtn = document.getElementById('generate-reset-link');
