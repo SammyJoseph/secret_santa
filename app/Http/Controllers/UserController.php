@@ -324,14 +324,14 @@ class UserController extends Controller
 
         // Notificar al admin sobre la actualización del perfil
         $userName = $user->nickname ?: $user->name;
-        $familyName = $user->familyGroup?->name;
-        $familyText = $familyName ? " ({$familyName})" : '';
+        // $familyName = $user->familyGroup?->name;
+        // $familyText = $familyName ? " ({$familyName})" : '';
 
         app(ArtisamNotificationService::class)->send(
             title: 'Perfil actualizado',
-            message: "{$userName}{$familyText} modificó su perfil.",
+            message: "{$userName} modificó su perfil.",
             options: [
-                'url' => route('admin.users.profile', $user->id),
+                'url' => route('admin.users.edit', $user->id),
                 'url_title' => 'Ver perfil',
                 'category' => 'profile_update',
             ]

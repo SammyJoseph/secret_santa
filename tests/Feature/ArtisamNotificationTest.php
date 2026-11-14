@@ -96,11 +96,13 @@ class ArtisamNotificationTest extends TestCase
 
         $response->assertRedirect(route('user.profile'));
 
-        Http::assertSent(function ($request) {
+        Http::assertSent(function ($request) use ($user) {
             return $request->url() === 'https://notifications.artisam.dev/api/v1/notify'
                 && $request['title'] === 'Perfil actualizado'
                 && str_contains($request['message'], 'Carlitos')
                 && str_contains($request['message'], 'Familia García')
+                && $request['url'] === route('admin.users.edit', $user->id)
+                && $request['url_title'] === 'Ver perfil'
                 && $request['category'] === 'profile_update';
         });
     }
