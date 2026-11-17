@@ -40,7 +40,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::resource('admin/users', AdminUserController::class)->middleware('is_admin')->names('admin.users');
-    Route::get('admin/users/{user}/profile', [AdminUserController::class, 'showProfile'])->middleware('is_admin')->name('admin.users.profile');
+    // Route::get('admin/users/{user}/profile', [AdminUserController::class, 'showProfile'])->middleware('is_admin')->name('admin.users.profile');
     Route::delete('admin/users/{user}/avatar', [AdminUserController::class, 'deleteAvatar'])->middleware('is_admin')->name('admin.users.delete-avatar');
     Route::post('admin/users/{user}/generate-reset-link', [AdminUserController::class, 'generateResetLink'])->middleware('is_admin')->name('admin.users.generate-reset-link');
     Route::post('admin/users/{user}/assign-family', [FamilyController::class, 'assign'])->middleware('is_admin')->name('admin.users.assign-family');
