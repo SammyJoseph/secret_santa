@@ -92,6 +92,11 @@ class User extends Authenticatable
         return $this->hasMany(GiftSuggestion::class);
     }
 
+    public function giftSuggestionHistories(): HasMany
+    {
+        return $this->hasMany(GiftSuggestionHistory::class);
+    }
+
     public function familyGroup(): BelongsTo
     {
         return $this->belongsTo(FamilyGroup::class);

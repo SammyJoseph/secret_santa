@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\FamilyGroup;
 use App\Models\GiftSuggestion;
+use App\Models\GiftSuggestionHistory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -190,6 +191,13 @@ class UserProfileImagesTest extends TestCase
         $this->assertNotNull($suggestion);
         $this->assertEquals('Zapatillas deportivas', $suggestion->suggestion);
         $this->assertNull($suggestion->reference_image_path);
-        Storage::disk('public')->assertMissing($fakeImagePath);
+        Storage::disk('public')->assertExists($fakeImagePath);
+
+        $history = GiftSuggestionHistory::where('user_id', $user->id)
+            ->where('family_group_id', $familyGroup->id)
+            ->first();
+
+        $this->assertNotNull($history);
+        $this->assertSame($fakeImagePath, $history->suggestions[0]['reference_image_path'] ?? null);
     }
 }

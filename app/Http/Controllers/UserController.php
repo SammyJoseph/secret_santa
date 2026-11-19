@@ -6,9 +6,11 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Models\GiftSuggestion;
+use App\Models\GiftSuggestionHistory;
 use App\Models\SecretSantaAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -175,6 +177,33 @@ class UserController extends Controller
 
             $user->update($updateData);
 
+            $existingSuggestions = GiftSuggestion::where('user_id', $user->id)
+                ->where('family_group_id', $familyGroupId)
+                ->orderBy('id')
+                ->get();
+
+            $previousSnapshot = $this->formatSuggestionsSnapshot($existingSuggestions);
+            $incomingSnapshot = [];
+            foreach (($validated['gift_suggestions'] ?? []) as $suggestion) {
+                $suggestionText = is_string($suggestion) ? trim($suggestion) : '';
+                if ($suggestionText !== '') {
+                    $incomingSnapshot[] = [
+                        'suggestion' => $suggestionText,
+                        'reference_image_path' => null,
+                    ];
+                }
+            }
+
+            if (!empty($previousSnapshot) && $previousSnapshot !== $incomingSnapshot) {
+                GiftSuggestionHistory::create([
+                    'user_id' => $user->id,
+                    'family_group_id' => $familyGroupId,
+                    'suggestions' => $previousSnapshot,
+                    'suggested_at' => $existingSuggestions->max('updated_at')
+                        ?? $existingSuggestions->max('created_at'),
+                ]);
+            }
+
             // Reemplazar solo sugerencias de la familia actual si existieran (nunca borrar años pasados)
             GiftSuggestion::where('user_id', $user->id)
                 ->where('family_group_id', $familyGroupId)
@@ -257,9 +286,10 @@ class UserController extends Controller
         }
 
         // Handle gift suggestions update
-        // Collect old reference images before deleting FOR CURRENT FAMILY ONLY
+        // Collect old reference images and existing suggestions FOR CURRENT FAMILY ONLY
         $currentFamilySuggestions = GiftSuggestion::where('user_id', $user->id)
             ->where('family_group_id', $user->family_group_id)
+            ->orderBy('id')
             ->get();
 
         $oldImages = [];
@@ -267,12 +297,8 @@ class UserController extends Controller
             $oldImages[$index] = $suggestion->reference_image_path;
         }
 
-        // Delete existing suggestions ONLY for the current family (never delete other years/families)
-        GiftSuggestion::where('user_id', $user->id)
-            ->where('family_group_id', $user->family_group_id)
-            ->delete();
-
-        $usedImages = [];
+        $previousSnapshot = $this->formatSuggestionsSnapshot($currentFamilySuggestions);
+        $newSnapshot = [];
 
         if (!empty($validated['gift_suggestions']) && is_array($validated['gift_suggestions'])) {
             foreach ($validated['gift_suggestions'] as $index => $suggestion) {
@@ -299,24 +325,39 @@ class UserController extends Controller
                     $referenceImagePath = $oldImages[$index];
                 }
 
-                if ($referenceImagePath) {
-                    $usedImages[] = $referenceImagePath;
-                }
-
-                GiftSuggestion::create([
-                    'user_id' => $user->id,
-                    'family_group_id' => $user->family_group_id,
+                $newSnapshot[] = [
                     'suggestion' => $suggestionText !== '' ? $suggestionText : 'Sugerencia de regalo',
-                    'reference_image_path' => $referenceImagePath,
-                ]);
+                    'reference_image_path' => $referenceImagePath ?: null,
+                ];
             }
         }
 
-        // Delete any discarded old images that were not reused
-        foreach ($oldImages as $oldImage) {
-            if ($oldImage && !in_array($oldImage, $usedImages) && Storage::disk('public')->exists($oldImage)) {
-                Storage::disk('public')->delete($oldImage);
-            }
+        if ($previousSnapshot !== $newSnapshot) {
+            DB::transaction(function () use ($user, $currentFamilySuggestions, $previousSnapshot, $newSnapshot) {
+                if (!empty($previousSnapshot)) {
+                    GiftSuggestionHistory::create([
+                        'user_id' => $user->id,
+                        'family_group_id' => $user->family_group_id,
+                        'suggestions' => $previousSnapshot,
+                        'suggested_at' => $currentFamilySuggestions->max('updated_at')
+                            ?? $currentFamilySuggestions->max('created_at'),
+                    ]);
+                }
+
+                // Delete existing suggestions ONLY for the current family (never delete other years/families)
+                GiftSuggestion::where('user_id', $user->id)
+                    ->where('family_group_id', $user->family_group_id)
+                    ->delete();
+
+                foreach ($newSnapshot as $item) {
+                    GiftSuggestion::create([
+                        'user_id' => $user->id,
+                        'family_group_id' => $user->family_group_id,
+                        'suggestion' => $item['suggestion'],
+                        'reference_image_path' => $item['reference_image_path'],
+                    ]);
+                }
+            });
         }
 
         session()->forget(['temp_profile_image', 'temp_gift_images']);
@@ -573,6 +614,20 @@ class UserController extends Controller
         }
     }
 
+    private function formatSuggestionsSnapshot($suggestions): array
+    {
+        $snapshot = [];
+
+        foreach ($suggestions as $item) {
+            $snapshot[] = [
+                'suggestion' => trim((string) $item->suggestion),
+                'reference_image_path' => $item->reference_image_path ?: null,
+            ];
+        }
+
+        return $snapshot;
+    }
+
     private function saveGiftImage(User $user, int $index, $imageFile, ?string $oldPath = null): ?string
     {
         try {
@@ -586,11 +641,6 @@ class UserController extends Controller
 
             // Always save as JPEG to avoid WebP encoder issues
             Storage::disk('public')->put($filename, $image->encode(new JpegEncoder(quality: 90)));
-
-            // Delete old image if exists
-            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
 
             return $filename;
         } catch (\Exception $e) {

@@ -376,6 +376,19 @@ class UserController extends Controller
 
         $users = User::with('secretSantaAssignment.receiver')->orderBy('created_at', 'desc')->get();
 
+        $suggestionHistories = $user->giftSuggestionHistories()
+            ->with('familyGroup')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $currentFamilyHistoryCount = $user->family_group_id
+            ? $suggestionHistories->where('family_group_id', $user->family_group_id)->count()
+            : $suggestionHistories->count();
+        $totalHistoryCount = $suggestionHistories->count();
+        $hasOtherFamilyHistories = $user->family_group_id
+            && $suggestionHistories->contains(fn ($h) => $h->family_group_id != $user->family_group_id);
+
         return view('admin.users.edit', compact(
             'user',
             'users',
@@ -385,7 +398,11 @@ class UserController extends Controller
             'defaultYear',
             'defaultFamilyId',
             'allFamilyMembers',
-            'existingFamilyIds'
+            'existingFamilyIds',
+            'suggestionHistories',
+            'currentFamilyHistoryCount',
+            'totalHistoryCount',
+            'hasOtherFamilyHistories'
         ));
     }
 

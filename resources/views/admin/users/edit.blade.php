@@ -5,7 +5,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-data="{ showModal: false, modalImage: '' }">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-data="{ showModal: false, modalImage: '', showHistoryModal: false, historyScope: '{{ ($currentFamilyHistoryCount > 0 || !$hasOtherFamilyHistories) ? 'current' : 'all' }}' }">
                 <!-- Columna Izquierda: Perfil -->
                 <div class="rounded-lg border bg-white px-4 py-8 shadow-lg">
                     <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data">
@@ -41,9 +41,19 @@
                             @enderror
                         </div>
                         <div class="mt-4">
-                            <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                                Sugerencias actuales {{ $user->familyGroup ? '(' . $user->familyGroup->name . ' - ' . $user->familyGroup->year . ')' : '' }}
-                            </h4>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                    Sugerencias actuales {{ $user->familyGroup ? '(' . $user->familyGroup->name . ' - ' . $user->familyGroup->year . ')' : '' }}
+                                </h4>
+                                <button type="button"
+                                        @click="showHistoryModal = true"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition {{ $totalHistoryCount > 0 ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100' }}">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span>Ver historial ({{ $totalHistoryCount }})</span>
+                                </button>
+                            </div>
                             <div class="space-y-3">
                                 @forelse($user->giftSuggestions as $suggestion)
                                     <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-3">
@@ -193,11 +203,115 @@
                     </div>
                 </div>
 
+                <!-- History Modal (Solo lectura para Admin) -->
+                <div x-show="showHistoryModal"
+                     @click.self="showHistoryModal = false"
+                     @keydown.escape.window="if (!showModal) showHistoryModal = false"
+                     class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4"
+                     style="display: none;">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+                        <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900">Historial de sugerencias</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ $user->name }}{{ $user->nickname ? ' (' . $user->nickname . ')' : '' }}</p>
+                            </div>
+                            <button type="button" @click="showHistoryModal = false" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition" title="Cerrar">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        @if($hasOtherFamilyHistories)
+                            <div class="px-5 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+                                <button type="button"
+                                        @click="historyScope = 'current'"
+                                        :class="historyScope === 'current' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'"
+                                        class="px-3 py-1 rounded-full text-xs font-medium border transition">
+                                    Familia actual ({{ $currentFamilyHistoryCount }})
+                                </button>
+                                <button type="button"
+                                        @click="historyScope = 'all'"
+                                        :class="historyScope === 'all' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'"
+                                        class="px-3 py-1 rounded-full text-xs font-medium border transition">
+                                    Todas las ediciones ({{ $totalHistoryCount }})
+                                </button>
+                            </div>
+                        @endif
+
+                        <div class="flex-1 overflow-y-auto p-5 space-y-4">
+                            @if($suggestionHistories->isEmpty())
+                                <div class="text-center py-8 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                    <p class="text-sm font-medium text-gray-600">Este usuario aún no tiene cambios registrados en sus sugerencias de regalo.</p>
+                                    <p class="text-xs text-gray-400 mt-1">Cada vez que modifique sus sugerencias o imágenes referenciales, la versión anterior quedará guardada aquí.</p>
+                                </div>
+                            @else
+                                @if($hasOtherFamilyHistories && $currentFamilyHistoryCount === 0)
+                                    <div x-show="historyScope === 'current'" class="text-center py-8 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                        <p class="text-sm font-medium text-gray-600">No hay cambios registrados para la familia actual.</p>
+                                        <p class="text-xs text-gray-400 mt-1">Selecciona &laquo;Todas las ediciones&raquo; para consultar versiones de familias anteriores.</p>
+                                    </div>
+                                @endif
+
+                                @foreach($suggestionHistories as $history)
+                                    @php
+                                        $belongsToCurrentFamily = !$user->family_group_id || (int) $history->family_group_id === (int) $user->family_group_id;
+                                        $familyLabel = $history->familyGroup
+                                            ? $history->familyGroup->name . ' (' . $history->familyGroup->year . ')'
+                                            : 'Edición anterior';
+                                    @endphp
+                                    <div x-show="historyScope === 'all' || {{ $belongsToCurrentFamily ? 'true' : 'false' }}" class="border border-gray-200 rounded-lg bg-gray-50/70 p-4">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                            <div class="text-xs text-gray-600">
+                                                <span class="font-semibold text-gray-800">Reemplazada el {{ $history->created_at?->format('d/m/Y H:i') }}</span>
+                                                @if($history->suggested_at)
+                                                    <span class="text-gray-500"> · Escrita el {{ $history->suggested_at->format('d/m/Y H:i') }}</span>
+                                                @endif
+                                            </div>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-800">
+                                                {{ $familyLabel }}
+                                            </span>
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            @forelse(($history->suggestions ?? []) as $item)
+                                                @php
+                                                    $refPath = $item['reference_image_path'] ?? null;
+                                                    $imgUrl = $refPath ? asset('storage/' . $refPath) : asset('assets/images/no-image.jpg');
+                                                @endphp
+                                                <div class="bg-white rounded-lg p-3 flex items-center space-x-3 border border-gray-100">
+                                                    <div class="w-11 h-11 flex-none rounded-lg overflow-hidden border border-gray-200 cursor-pointer"
+                                                         @click="showModal = true; modalImage = '{{ $imgUrl }}'"
+                                                         title="Clic para ampliar">
+                                                        <img class="w-full h-full object-cover" src="{{ $imgUrl }}" alt="Imagen de referencia histórica">
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm text-gray-700 break-words">{{ $item['suggestion'] ?? 'Sugerencia de regalo' }}</p>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p class="text-xs text-gray-400 italic">Sin elementos registrados en esta versión.</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+
+                        <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-3">
+                            <span class="text-xs text-gray-500">Solo lectura · Visible únicamente para administradores</span>
+                            <button type="button" @click="showHistoryModal = false" class="px-4 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Image Modal -->
-                <div x-show="showModal" @keydown.escape.window="showModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;">
-                    <div @click.away="showModal = false" class="relative px-4 rounded-lg shadow-lg max-w-lg w-full">
+                <div x-show="showModal" @click.self="showModal = false" @keydown.escape.window="showModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;">
+                    <div class="relative px-4 rounded-lg shadow-lg max-w-lg w-full">
                         <img :src="modalImage" alt="Profile image large" class="w-full h-auto rounded-md">
-                        <button @click="showModal = false" class="absolute top-0 right-0 mt-2 mr-2 text-white bg-gray-800 rounded-full p-1 hover:bg-gray-600">
+                        <button type="button" @click="showModal = false" class="absolute top-0 right-0 mt-2 mr-2 text-white bg-gray-800 rounded-full p-1 hover:bg-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     </div>
